@@ -52,7 +52,6 @@
 %pure-parser
 %error-verbose
 
-
 %parse-param {struct dict** dict}
 %parse-param {FILE* fd}
 %lex-param {FILE* fd}
@@ -109,8 +108,6 @@ entry-sequence ',' entry
   JSON_SetDictValue($1, $3);
   $$ = $1;
 }
-|
-entry-sequence
 ;
 
 object:

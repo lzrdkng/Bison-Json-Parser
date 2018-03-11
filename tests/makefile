@@ -2,75 +2,59 @@
 CC          := gcc
 
 #The Target Binary Program
-TARGET      := libJSON.so
-TARGETDIR   := lib
-
-ifeq ($(PREFIX),)
-	PREFIX := /usr/local
-endif
-
+TARGET      := tests
 
 #The Directories, Source, Includes, Objects, Binary and Resources
-BUILDDIR    := obj
-DOCDIR      := doc
-INCDIR      := inc
-RESDIR      := res
 SRCDIR      := src
-TESTSDIR    := tests
-
+INCDIR      := ../inc
+LIBDIR      := ../lib
+BUILDDIR    := obj
+TARGETDIR   := bin
+RESDIR      := res
+SRCEXT      := c
 DEPEXT      := d
 OBJEXT      := o
-SRCEXT      := c
 
 #Flags, Libraries and Includes
-CFLAGS      := -fPIC -Wall -Werror -O3
+CFLAGS      := -Wall -Werror -ggdb -O0
+LIB         := -L${LIBDIR} -lJSON
 INC         := -I$(INCDIR)
 INCDEP      := -I$(INCDIR)
-LIB         :=
 
-# Bison source, header and yac files
-BCC        := $(SRCDIR)/parser.c
-BHH        := $(INCDIR)/parser.h
-BYY        := $(INCDIR)/parser.y
-
-# Bison flags
-BFLAGS      := --defines=$(BHH) --output $(BCC)
-
+# Valgrind
+VOPTIONS := -v
 
 #---------------------------------------------------------------------------------
 #DO NOT EDIT BELOW THIS LINE
 #---------------------------------------------------------------------------------
-SOURCES     := $(shell echo $(SRCDIR)/*.$(SRCEXT)) $(BCC)
+SOURCES     := $(shell echo $(SRCDIR)/test-*.$(SRCEXT))
 OBJECTS     := $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(SOURCES:.$(SRCEXT)=.$(OBJEXT)))
 
-#Default Make
-all: $(BCC) directories $(TARGET)
-
-# install
-install:
-	mkdir -p $(PREFIX)/lib
-	mkdir -p $(PREFIX)/include/JSON
-	install -m 557 $(TARGETDIR)/$(TARGET) $(PREFIX)/lib/
-	install -m 557 $(INCDIR)/*.hpp $(PREFIX)/include/JSON
-
+#Defauilt Make
+all: directories $(TARGET)
 
 #Remake
 remake: cleaner all
 
-# Bison compilation
-$(BCC): $(BYY)
-	bison $(BFLAGS) $(BYY)
 
 directories:
 	@mkdir -p $(TARGETDIR)
 	@mkdir -p $(BUILDDIR)
+
+#Clean only Objecst
+clean:
+	@$(RM) -rf $(BUILDDIR)
+
+#Full Clean, Objects and Binaries
+cleaner: clean
+	@$(RM) -rf $(TARGETDIR)
 
 #Pull in dependency info for *existing* .o files
 -include $(OBJECTS:.$(OBJEXT)=.$(DEPEXT))
 
 #Link
 $(TARGET): $(OBJECTS)
-	$(CC) -shared -o $(TARGETDIR)/$(TARGET) $^ $(LIB)
+	$(CC) -Wl,-rpath=$(LIBDIR),-rpath=/usr/local/lib -o $(TARGETDIR)/$(TARGET) $^ $(LIB) && valgrind $(VOPTIONS) ./bin/tests test.json > /dev/null
 
 #Compile
 $(BUILDDIR)/%.$(OBJEXT): $(SRCDIR)/%.$(SRCEXT)
@@ -82,36 +66,6 @@ $(BUILDDIR)/%.$(OBJEXT): $(SRCDIR)/%.$(SRCEXT)
 	@sed -e 's/.*://' -e 's/\\$$//' < $(BUILDDIR)/$*.$(DEPEXT).tmp | fmt -1 | sed -e 's/^ *//' -e 's/$$/:/' >> $(BUILDDIR)/$*.$(DEPEXT)
 	@rm -f $(BUILDDIR)/$*.$(DEPEXT).tmp
 
-
-# Cleaners
-
-#Clean only Objects
-clean:
-	@$(RM) -rf $(BUILDDIR)
-
-# Full Clean, Objects, Lib, Documentation, Bison, Tests
-cleaner: clean clean-tests clean-doc clean-bison
-	@$(RM) -rf $(TARGETDIR)
-
-
-clean-bison:
-	@$(RM) $(BHH) $(BCC)
-
-
-clean-doc:
-	@$(RM) -rf $(DOCDIR)
-
-clean-tests:
-	make -C $(TESTSDIR) cleaner
-
-# Testing
-tests:
-	make -C $(TESTSDIR)
-
-# Documentation
-doc:
-	doxygen doc.config
-
-
 #Non-File Targets
-.PHONY: all remake clean cleaner resources tests clean-tests doc clean-doc clean-bison
+.PHONY: all remake clean cleaner resources
+

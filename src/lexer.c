@@ -44,7 +44,7 @@ ssize_t getword(char** buf, FILE* fd)
     if (n == len)
     {
       len *= 2;
-      *buf = realloc(*buf, len);
+      *buf = realloc(*buf, len + 1);
 
       if (!*buf)
         return 0;

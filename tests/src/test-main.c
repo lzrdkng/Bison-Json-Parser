@@ -19,7 +19,15 @@
 #include "parser.h"
 #include "json.h"
 
+// ANSI color escape
+#define ORANGE "\e[38;5;202m"
+#define PURPLE "\e[38;5;56m"
+#define YELLOW "\e[93m"
+#define RESET "\e[0m"
+
 #define PRINT_INDENT for (size_t j=0; j<(*nest_level)*2; ++j) printf(" ");
+
+static const char* bools[3] = {"false", "null", "true"};
 
 void print_type(struct type* type, size_t* nest_level);
 void print_list(struct list* list, size_t* nest_level);
@@ -51,18 +59,18 @@ void print_type(struct type* type, size_t* nest_level)
   PRINT_INDENT
 
   if (type->label)
-    printf("\"%s\":", type->label);
+    printf(YELLOW"\"%s\":"RESET, type->label);
 
   switch (type->type)
   {
   case JSON_BOOLEAN:
-    printf("%d", type->bool);
+    printf(PURPLE"%s"RESET, bools[type->bool + 1]);
     break;
   case JSON_NUMBER:
-    printf("%lf", type->num);
+    printf(ORANGE"%lf"RESET, type->num);
     break;
   case JSON_STRING:
-    printf("\"%s\"", type->str);
+    printf(YELLOW"\"%s\""RESET, type->str);
     break;
   case JSON_LIST:
     print_list(type->list, nest_level);
