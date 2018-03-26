@@ -54,6 +54,9 @@ dkms.conf
 # Documentation output
 doc
 
+# bin
+*bin/
+
 # GNU Global
 GPATH
 GRTAGS

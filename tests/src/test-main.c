@@ -29,9 +29,9 @@
 
 static const char* bools[3] = {"false", "null", "true"};
 
-void print_type(struct type* type, size_t* nest_level);
-void print_list(struct list* list, size_t* nest_level);
-void print_dict(struct dict* dict, size_t* nest_level);
+void print_type(JSON_Type* type, size_t* nest_level);
+void print_list(JSON_List* list, size_t* nest_level);
+void print_dict(JSON_Dict* dict, size_t* nest_level);
 
 int main(int argc, char* argv[])
 {
@@ -54,7 +54,7 @@ int main(int argc, char* argv[])
   return 0;
 }
 
-void print_type(struct type* type, size_t* nest_level)
+void print_type(JSON_Type* type, size_t* nest_level)
 {
   PRINT_INDENT
 
@@ -83,7 +83,7 @@ void print_type(struct type* type, size_t* nest_level)
   }
 }
 
-void print_list(struct list* list, size_t* nest_level)
+void print_list(JSON_List* list, size_t* nest_level)
 {
   printf("\n");
   PRINT_INDENT
@@ -99,7 +99,7 @@ void print_list(struct list* list, size_t* nest_level)
   printf("]");
 }
 
-void print_dict(struct dict* dict, size_t* nest_level)
+void print_dict(JSON_Dict* dict, size_t* nest_level)
 {
   printf("\n");
   PRINT_INDENT
@@ -107,7 +107,7 @@ void print_dict(struct dict* dict, size_t* nest_level)
   ++(*nest_level);
   for (size_t i=0; i<dict->size; ++i)
   {
-    struct type* head = dict->buckets[i];
+    JSON_Type* head = dict->buckets[i];
 
     while (head)
     {

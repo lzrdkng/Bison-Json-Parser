@@ -33,8 +33,8 @@
   size_t hashType(const char*);
 
   int yylex(YYSTYPE* valP, YYLTYPE* locP, FILE* fd);
-  int yypase(struct dict**, FILE* fd);
-  void yyerror(YYLTYPE* locP, struct dict**, FILE* fd, const char* error);
+  int yypase(struct JSON_Dict**, FILE* fd);
+  void yyerror(YYLTYPE* locP, struct JSON_Dict**, FILE* fd, const char* error);
 %}
 /*============================ Bison Definitions =============================*/
 %union {
@@ -42,9 +42,9 @@
   int           bool;
   double        num;
   char*         str;
-  struct type*  type;
-  struct dict*  dict;
-  struct list*  list;
+  struct JSON_Type*  type;
+  struct JSON_Dict*  dict;
+  struct JSON_List*  list;
 }
 
 %debug
@@ -52,7 +52,7 @@
 %pure-parser
 %error-verbose
 
-%parse-param {struct dict** dict}
+%parse-param {struct JSON_Dict** dict}
 %parse-param {FILE* fd}
 %lex-param {FILE* fd}
 
@@ -83,6 +83,7 @@ START object
 {
   *dict = $2;
 }
+;
 
 entry:
 STR ':' value
@@ -91,6 +92,7 @@ STR ':' value
   $$ = $3;
   free($1);
 }
+;
 
 entry-sequence:
 entry
@@ -98,14 +100,14 @@ entry
   $$ = JSON_MallocDict(JSON_DICT_SIZE, &hashType);
 
   if ($$)
-    JSON_SetDictValue($$, $1);
+    JSON_SetDict($$, $1);
   else
     perror("Failed MallocDict in entry-sequence::entry");
 }
 |
 entry-sequence ',' entry
 {
-  JSON_SetDictValue($1, $3);
+  JSON_SetDict($1, $3);
   $$ = $1;
 }
 ;
@@ -122,6 +124,7 @@ array:
 {
   $$ = $2;
 }
+;
 
 value-sequence:
 value
@@ -129,14 +132,14 @@ value
   $$ = JSON_MallocList(JSON_LIST_SIZE);
 
   if ($$)
-    JSON_AppendToList($$, $1);
+    JSON_PushList($$, $1);
   else
     perror("Failed MallocList in value-sequence::value");
 }
 |
 value-sequence ',' value
 {
-  JSON_AppendToList($1, $3);
+  JSON_PushList($1, $3);
   $$ = $1;
 }
 ;
@@ -210,7 +213,7 @@ size_t hashType(const char* str)
   return sum;
 }
 
-void yyerror(YYLTYPE* locP, struct dict** dict, FILE* fd, const char* error)
+void yyerror(YYLTYPE* locP, struct JSON_Dict** dict, FILE* fd, const char* error)
 {
   fprintf(stderr, "%s at %d.%d-%d.%d\n",
           error,
