@@ -48,6 +48,7 @@
 #ifndef _JSON_H
 #define _JSON_H
 /*================================= Includes =================================*/
+#include "error.h"
 #include "dict.h"
 #include "list.h"
 #include "type.h"

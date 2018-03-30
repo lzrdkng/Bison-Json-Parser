@@ -14,10 +14,11 @@
  */
 
 #include <stdlib.h>
-#include <unistd.h>
 #include <stdio.h>
+#include <time.h>
 #include "parser.h"
 #include "json.h"
+#include "print.h"
 
 // ANSI color escape
 #define ORANGE "\e[38;5;202m"
@@ -25,13 +26,7 @@
 #define YELLOW "\e[93m"
 #define RESET "\e[0m"
 
-#define PRINT_INDENT for (size_t j=0; j<(*nest_level)*2; ++j) printf(" ");
-
-static const char* bools[3] = {"false", "null", "true"};
-
-void print_type(JSON_Type* type, size_t* nest_level);
-void print_list(JSON_List* list, size_t* nest_level);
-void print_dict(JSON_Dict* dict, size_t* nest_level);
+int hashType(const JSON_Type* type, size_t* hash);
 
 int main(int argc, char* argv[])
 {
@@ -39,84 +34,50 @@ int main(int argc, char* argv[])
 
   FILE* in = fopen(argv[1], "r");
 
-  yyparse(&dict, in);
+  struct timespec start;
+  struct timespec end;
 
-  if (dict)
-  {
-    size_t nest_level = 0;
+  clock_gettime(CLOCK_REALTIME, &start);
 
-    print_dict(dict, &nest_level);
-    JSON_FreeDict(dict);
-  }
+  if (in)
+    JSON_parse(&dict, in, &hashType, 64, 128);
+
+  clock_gettime(CLOCK_REALTIME, &end);
+
+  printf("Bison finished parsing in %lf nanosecond(s).\n",
+         (1E9 * end.tv_sec + end.tv_nsec) - (1E9 * start.tv_sec + start.tv_nsec));
 
   fclose(in);
+
+  if (!dict)
+    return 1;
+
+  FILE* out = fopen("out.json", "w");
+
+  if (out)
+    JSON_PrintDict(dict, out);
+
+  JSON_FreeDict(dict);
+
+  fclose(out);
 
   return 0;
 }
 
-void print_type(JSON_Type* type, size_t* nest_level)
+int hashType(const JSON_Type* type, size_t* hash)
 {
-  PRINT_INDENT
-
-  if (type->label)
-    printf(YELLOW"\"%s\":"RESET, type->label);
-
-  switch (type->type)
+  if (type->label == NULL)
   {
-  case JSON_BOOLEAN:
-    printf(PURPLE"%s"RESET, bools[type->bool + 1]);
-    break;
-  case JSON_NUMBER:
-    printf(ORANGE"%lf"RESET, type->num);
-    break;
-  case JSON_STRING:
-    printf(YELLOW"\"%s\""RESET, type->str);
-    break;
-  case JSON_LIST:
-    print_list(type->list, nest_level);
-    break;
-  case JSON_DICT:
-    print_dict(type->dict, nest_level);
-    break;
-  default:
-    break;
+    __JSON_SetError(JSON_EHASH_NHASHABLE);
+    return -1;
   }
-}
 
-void print_list(JSON_List* list, size_t* nest_level)
-{
-  printf("\n");
-  PRINT_INDENT
-  printf("[\n");
-  ++(*nest_level);
-  for (size_t i=0; i<list->index; ++i)
-  {
-    print_type(list->elements[i], nest_level);
-    printf(",\n");
-  }
-  --(*nest_level);
-  PRINT_INDENT
-  printf("]");
-}
+  const char* str = type->label;
 
-void print_dict(JSON_Dict* dict, size_t* nest_level)
-{
-  printf("\n");
-  PRINT_INDENT
-  printf("{\n");
-  ++(*nest_level);
-  for (size_t i=0; i<dict->size; ++i)
-  {
-    JSON_Type* head = dict->buckets[i];
+  *hash = 0;
 
-    while (head)
-    {
-      print_type(head, nest_level);
-      printf(",\n");
-      head = head->next;
-    }
-  }
-  --(*nest_level);
-  PRINT_INDENT
-  printf("}");
+  while (*str)
+    *hash += (size_t)(*(str++));
+
+  return 0;
 }

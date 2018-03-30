@@ -32,10 +32,10 @@
 struct JSON_Type;
 struct JSON_List;
 /*================================= Typedefs =================================*/
-typedef size_t (*hashFnct) (const char*);
+typedef int (*JSON_HashFunc) (const struct JSON_Type*, size_t* hash);
 /*================================ Structures ================================*/
 /**
- * @struct dict
+ * @struct JSON_Dict
  *
  * @brief A structure that act like a hash table. A dict consists of 4
  * members. A pointer to a procedure, called 'freeBucket' that will
@@ -45,17 +45,17 @@ typedef size_t (*hashFnct) (const char*);
  * represent the number of bucket in the dict. And finally, 'buckets'
  * list of  pointers to individual bucket.
  *
- * @var dict::freeBucket A pointer to the procedure that will free
+ * @var JSON_Dict::freeBucket A pointer to the procedure that will free
  * invidiual bucket.
  *
- * @var dict::hash A pointer to the function that will produce the
+ * @var JSON_Dict::hash A pointer to the function that will produce the
  * hashed values for the dict.
  *
- * @var dict::size The number of bucket in the dict.
+ * @var JSON_Dict::size The number of bucket in the dict.
  */
 typedef struct JSON_Dict
 {
-  hashFnct    hash;
+  JSON_HashFunc    hash;
   size_t      size;
   struct JSON_Type** buckets;
 } JSON_Dict;
@@ -68,7 +68,7 @@ typedef struct JSON_Dict
  *
  * @return A pointer to the allocated 'JSON_Dict' or NULL on failure.
  */
-JSON_Dict* JSON_MallocDict(size_t size, hashFnct hash);
+JSON_Dict* JSON_MallocDict(size_t size, JSON_HashFunc hash);
 /*============================================================================*/
 /**
  * @brief Procedure that free from memory a 'JSON_Dict'.

@@ -61,7 +61,7 @@ ssize_t getword(char** buf, FILE* fd)
   return n;
 }
 
-int yylex(YYSTYPE* valP, YYLTYPE* locP, FILE* fd)
+int JSON_lex(JSON_STYPE* valP, JSON_LTYPE* locP, FILE* fd)
 {
   int c;
 

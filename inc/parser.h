@@ -30,20 +30,36 @@
    This special exception was added by the Free Software Foundation in
    version 2.2 of Bison.  */
 
-#ifndef YY_YY_INC_PARSER_H_INCLUDED
-# define YY_YY_INC_PARSER_H_INCLUDED
+#ifndef YY_JSON_INC_PARSER_H_INCLUDED
+# define YY_JSON_INC_PARSER_H_INCLUDED
 /* Debug traces.  */
-#ifndef YYDEBUG
-# define YYDEBUG 1
-#endif
+#ifndef JSON_DEBUG
+# if defined YYDEBUG
 #if YYDEBUG
-extern int yydebug;
+#   define JSON_DEBUG 1
+#  else
+#   define JSON_DEBUG 0
+#  endif
+# else /* ! defined YYDEBUG */
+#  define JSON_DEBUG 1
+# endif /* ! defined YYDEBUG */
+#endif  /* ! defined JSON_DEBUG */
+#if JSON_DEBUG
+extern int JSON_debug;
 #endif
+/* "%code requires" blocks.  */
+#line 52 "inc/parser.y" /* yacc.c:1909  */
+
+#include "json.h"
+  typedef int (*JSON_Hash) (const struct JSON_Type*, size_t*);
+ 
+
+#line 58 "inc/parser.h" /* yacc.c:1909  */
 
 /* Token type.  */
-#ifndef YYTOKENTYPE
-# define YYTOKENTYPE
-  enum yytokentype
+#ifndef JSON_TOKENTYPE
+# define JSON_TOKENTYPE
+  enum JSON_tokentype
   {
     BOOL = 258,
     NUM = 259,
@@ -52,44 +68,43 @@ extern int yydebug;
 #endif
 
 /* Value type.  */
-#if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
+#if ! defined JSON_STYPE && ! defined JSON_STYPE_IS_DECLARED
 
-union YYSTYPE
+union JSON_STYPE
 {
-#line 40 "inc/parser.y" /* yacc.c:1909  */
+#line 57 "inc/parser.y" /* yacc.c:1909  */
 
-
-  int           bool;
-  double        num;
-  char*         str;
+  int                bool;
+  double             num;
+  char*              str;
   struct JSON_Type*  type;
   struct JSON_Dict*  dict;
   struct JSON_List*  list;
 
-#line 70 "inc/parser.h" /* yacc.c:1909  */
+#line 85 "inc/parser.h" /* yacc.c:1909  */
 };
 
-typedef union YYSTYPE YYSTYPE;
-# define YYSTYPE_IS_TRIVIAL 1
-# define YYSTYPE_IS_DECLARED 1
+typedef union JSON_STYPE JSON_STYPE;
+# define JSON_STYPE_IS_TRIVIAL 1
+# define JSON_STYPE_IS_DECLARED 1
 #endif
 
 /* Location type.  */
-#if ! defined YYLTYPE && ! defined YYLTYPE_IS_DECLARED
-typedef struct YYLTYPE YYLTYPE;
-struct YYLTYPE
+#if ! defined JSON_LTYPE && ! defined JSON_LTYPE_IS_DECLARED
+typedef struct JSON_LTYPE JSON_LTYPE;
+struct JSON_LTYPE
 {
   int first_line;
   int first_column;
   int last_line;
   int last_column;
 };
-# define YYLTYPE_IS_DECLARED 1
-# define YYLTYPE_IS_TRIVIAL 1
+# define JSON_LTYPE_IS_DECLARED 1
+# define JSON_LTYPE_IS_TRIVIAL 1
 #endif
 
 
 
-int yyparse (struct JSON_Dict** dict, FILE* fd);
+int JSON_parse (struct JSON_Dict** dict, FILE* fd, JSON_Hash hashFunc, size_t dictSize, size_t listSize);
 
-#endif /* !YY_YY_INC_PARSER_H_INCLUDED  */
+#endif /* !YY_JSON_INC_PARSER_H_INCLUDED  */

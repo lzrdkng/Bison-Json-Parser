@@ -25,9 +25,9 @@
 #include <string.h>
 #include "json.h"
 /*========================= Function Implementations =========================*/
-JSON_Dict* JSON_MallocDict(size_t size, hashFnct hash)
+JSON_Dict* JSON_MallocDict(size_t size, JSON_HashFunc hash)
 {
-  JSON_Dict* dict = malloc(sizeof(JSON_Dict));
+  JSON_Dict* dict = calloc(1, sizeof(JSON_Dict));
 
   if (dict)
   {
@@ -42,7 +42,7 @@ JSON_Dict* JSON_MallocDict(size_t size, hashFnct hash)
 /*============================================================================*/
 void JSON_FreeDict(JSON_Dict* dict)
 {
-  if (dict)
+  if (dict->buckets)
   {
     for (size_t i=0; i < dict->size; ++i)
     {
@@ -66,15 +66,23 @@ void JSON_FreeDict(JSON_Dict* dict)
 int JSON_GetDict(const JSON_Type* key, const JSON_Dict* dict, JSON_Type** value)
 {
   if (dict->hash == NULL)
+  {
+    __JSON_SetError(JSON_EDICT_NHASH_FUNC);
+    return -1;
+  }
+
+  size_t i;
+
+  if (dict->hash(key, &i) < 0)
     return -1;
 
-  size_t i = dict->hash(key->label)%dict->size;
+  i %= dict->size;
 
-  for (JSON_Type* p = dict->buckets[i]; p; p = p->next)
+  for (JSON_Type* ptr = dict->buckets[i]; ptr; ptr = ptr->next)
   {
-    if (strcmp(p->label, key->label) == 0)
+    if (strcmp(ptr->label, key->label) == 0)
     {
-      *value = p;
+      *value = ptr;
       break;
     }
   }
@@ -85,9 +93,17 @@ int JSON_GetDict(const JSON_Type* key, const JSON_Dict* dict, JSON_Type** value)
 int JSON_SetDict(JSON_Dict* dict, JSON_Type* value)
 {
   if (dict->hash == NULL)
+  {
+    __JSON_SetError(JSON_EDICT_NHASH_FUNC);
+    return -1;
+  }
+
+  size_t i;
+
+  if (dict->hash(value, &i) < 0)
     return -1;
 
-  size_t i = dict->hash(value->label)%dict->size;
+  i %= dict->size;
 
   JSON_Type** headP = &(dict->buckets[i]);
   JSON_Type*  head  = *headP;

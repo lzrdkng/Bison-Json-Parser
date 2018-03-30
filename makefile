@@ -23,7 +23,7 @@ OBJEXT      := o
 SRCEXT      := c
 
 #Flags, Libraries and Includes
-CFLAGS      := -fPIC -Wall -Werror -O3
+CFLAGS      := -fPIC -Wall -Werror -O0 -ggdb
 INC         := -I$(INCDIR)
 INCDEP      := -I$(INCDIR)
 LIB         :=

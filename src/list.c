@@ -26,13 +26,11 @@
 /*========================= Function Implementations =========================*/
 JSON_List* JSON_MallocList(size_t size)
 {
-  JSON_List* list = malloc(sizeof(JSON_List));
+  JSON_List* list = calloc(1, sizeof(JSON_List));
 
   if (list)
   {
-    list->size  = size;
-    list->index = 0;
-
+    list->size     = size;
     list->elements = calloc(size, sizeof(JSON_Type*));
   }
 
@@ -41,10 +39,14 @@ JSON_List* JSON_MallocList(size_t size)
 /*============================================================================*/
 void JSON_FreeList(JSON_List* list)
 {
-  for (size_t i = 0; i < list->size; ++i)
-    JSON_FreeType(list->elements[i]);
+  if (list->elements)
+  {
+    for (size_t i = 0; i < list->size; ++i)
+      JSON_FreeType(list->elements[i]);
 
-  free(list->elements);
+    free(list->elements);
+  }
+
   free(list);
 }
 
@@ -54,10 +56,13 @@ int JSON_PushList(JSON_List* list, JSON_Type* type)
   if (list->index == list->size)
   {
     list->size *= 2;
-    list->elements = realloc(list->elements, list->size);
+    list->elements = realloc(list->elements, sizeof(struct JSON_Type*) * list->size);
 
     if (!list->elements)
+    {
+      __JSON_SetError(JSON_ELIST_FAILED_REALLOC);
       return -1;
+    }
   }
 
   list->elements[(list->index)++] = type;

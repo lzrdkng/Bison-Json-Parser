@@ -17,44 +17,64 @@
  *
  * Bison json parser.
  */
+/*============================================================================*/
 /*================================= Prologue =================================*/
 %{
+/*============================================================================*/
 /*================================= Includes =================================*/
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include "parser.h"
 #include "json.h"
-/*================================== Macros ==================================*/
-#define JSON_DICT_SIZE 64
-#define JSON_LIST_SIZE 64
-/*================================== Extern ==================================*/
+#include "parser.h"
+/*============================================================================*/
 /*================================ Prototypes ================================*/
-  size_t hashType(const char*);
+  int JSON_lex(JSON_STYPE* valP,
+                     JSON_LTYPE* locP,
+                     FILE* fd);
 
-  int yylex(YYSTYPE* valP, YYLTYPE* locP, FILE* fd);
-  int yypase(struct JSON_Dict**, FILE* fd);
-  void yyerror(YYLTYPE* locP, struct JSON_Dict**, FILE* fd, const char* error);
+  int JSON_parse(struct JSON_Dict**,
+                 FILE* fd,
+                 JSON_Hash hashFunc,
+                 size_t dictSize,
+                 size_t listSize);
+
+  void JSON_error(JSON_LTYPE* locP,
+                  struct JSON_Dict**,
+                  FILE* fd,
+                  JSON_Hash hashFunc,
+                  size_t dictSize,
+                  size_t listSize,
+                  const char* error);
 %}
+/*============================================================================*/
 /*============================ Bison Definitions =============================*/
-%union {
+%code requires {
+#include "json.h"
+  typedef int (*JSON_Hash) (const struct JSON_Type*, size_t*);
+ }
 
-  int           bool;
-  double        num;
-  char*         str;
+%union {
+  int                bool;
+  double             num;
+  char*              str;
   struct JSON_Type*  type;
   struct JSON_Dict*  dict;
   struct JSON_List*  list;
 }
 
+%define api.prefix {JSON_}
 %debug
 %locations
-%pure-parser
+%define api.pure full
 %error-verbose
 
 %parse-param {struct JSON_Dict** dict}
 %parse-param {FILE* fd}
-%lex-param {FILE* fd}
+%parse-param {JSON_Hash hashFunc}
+%parse-param {size_t dictSize}
+%parse-param {size_t listSize}
+%lex-param   {FILE* fd}
 
 %token <bool> BOOL
 %token <num>  NUM
@@ -97,12 +117,16 @@ STR ':' value
 entry-sequence:
 entry
 {
-  $$ = JSON_MallocDict(JSON_DICT_SIZE, &hashType);
+  $$ = JSON_MallocDict(dictSize, hashFunc);
 
   if ($$)
     JSON_SetDict($$, $1);
   else
+  {
     perror("Failed MallocDict in entry-sequence::entry");
+    YYABORT;
+  }
+
 }
 |
 entry-sequence ',' entry
@@ -129,12 +153,15 @@ array:
 value-sequence:
 value
 {
-  $$ = JSON_MallocList(JSON_LIST_SIZE);
+  $$ = JSON_MallocList(listSize);
 
   if ($$)
     JSON_PushList($$, $1);
   else
+  {
     perror("Failed MallocList in value-sequence::value");
+    YYABORT;
+  }
 }
 |
 value-sequence ',' value
@@ -152,7 +179,10 @@ STR
   if ($$)
     $$->str = strdup($1);
   else
+  {
     perror("Failed MallocType in value::STR");
+    YYABORT;
+  }
 
   free($1);
 }
@@ -164,7 +194,10 @@ NUM
   if ($$)
     $$->num = $1;
   else
+  {
     perror("Failed MallocType in value::NUM");
+    YYABORT;
+  }
 }
 |
 object
@@ -174,7 +207,11 @@ object
   if ($$)
     $$->dict = $1;
   else
+  {
     perror("Failed MallocType in value::object");
+    YYABORT;
+
+  }
 }
 |
 array
@@ -184,7 +221,10 @@ array
   if ($$)
     $$->list = $1;
   else
+  {
     perror("Failed MallocType in value::list");
+    YYABORT;
+  }
 }
 |
 BOOL
@@ -194,26 +234,22 @@ BOOL
   if ($$)
     $$->bool = $1;
   else
+  {
     perror("Failed MallocType in value::BOOL");
+    YYABORT;
+  }
 }
 ;
 
 %%
 /*  ================================ Epilogue ================================  */
-size_t hashType(const char* str)
-{
-  size_t sum = 0;
-
-  while (*str)
-  {
-    sum += (int)(*str);
-    ++str;
-  }
-
-  return sum;
-}
-
-void yyerror(YYLTYPE* locP, struct JSON_Dict** dict, FILE* fd, const char* error)
+void JSON_error(JSON_LTYPE* locP,
+                struct JSON_Dict** dict,
+                FILE* fd,
+                JSON_Hash hashFunc,
+                size_t dictSize,
+                size_t listSize,
+                const char* error)
 {
   fprintf(stderr, "%s at %d.%d-%d.%d\n",
           error,

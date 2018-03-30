@@ -16,7 +16,7 @@ DEPEXT      := d
 OBJEXT      := o
 
 #Flags, Libraries and Includes
-CFLAGS      := -Wall -Werror -ggdb -O0
+CFLAGS      := -fPIC -Wall -Werror -ggdb -O0
 LIB         := -L${LIBDIR} -lJSON
 INC         := -I$(INCDIR)
 INCDEP      := -I$(INCDIR)
