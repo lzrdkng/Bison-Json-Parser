@@ -23,10 +23,10 @@ OBJEXT      := o
 SRCEXT      := c
 
 #Flags, Libraries and Includes
-CFLAGS      := -fPIC -Wall -Werror -O0 -ggdb
+CFLAGS      := -fPIC -Wall -Werror -pg -g -O0 -no-pie
 INC         := -I$(INCDIR)
 INCDEP      := -I$(INCDIR)
-LIB         :=
+LIB         := -pg
 
 # Bison source, header and yac files
 BCC        := $(SRCDIR)/parser.c
@@ -51,7 +51,7 @@ install:
 	mkdir -p $(PREFIX)/lib
 	mkdir -p $(PREFIX)/include/JSON
 	install -m 557 $(TARGETDIR)/$(TARGET) $(PREFIX)/lib/
-	install -m 557 $(INCDIR)/*.hpp $(PREFIX)/include/JSON
+	install -m 557 $(INCDIR)/*.h $(PREFIX)/include/JSON
 
 
 #Remake
@@ -70,7 +70,7 @@ directories:
 
 #Link
 $(TARGET): $(OBJECTS)
-	$(CC) -shared -o $(TARGETDIR)/$(TARGET) $^ $(LIB)
+	$(CC) $(CFLAGS) -shared -o $(TARGETDIR)/$(TARGET) $^ $(LIB)
 
 #Compile
 $(BUILDDIR)/%.$(OBJEXT): $(SRCDIR)/%.$(SRCEXT)

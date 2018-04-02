@@ -16,9 +16,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
-#include "parser.h"
-#include "json.h"
-#include "print.h"
+#include <JSON/json.h>
+#include <JSON/parser.h>
+#include <JSON/io.h>
 
 // ANSI color escape
 #define ORANGE "\e[38;5;202m"
@@ -26,58 +26,40 @@
 #define YELLOW "\e[93m"
 #define RESET "\e[0m"
 
-int hashType(const JSON_Type* type, size_t* hash);
+size_t hashType(const char* key);
 
 int main(int argc, char* argv[])
 {
-  JSON_Dict* dict = NULL;
+  JSON_Type* type = NULL;
 
   FILE* in = fopen(argv[1], "r");
 
-  struct timespec start;
-  struct timespec end;
-
-  clock_gettime(CLOCK_REALTIME, &start);
-
   if (in)
-    JSON_parse(&dict, in, &hashType, 64, 128);
-
-  clock_gettime(CLOCK_REALTIME, &end);
-
-  printf("Bison finished parsing in %lf nanosecond(s).\n",
-         (1E9 * end.tv_sec + end.tv_nsec) - (1E9 * start.tv_sec + start.tv_nsec));
+    JSON_parse(&type, in, &hashType, 64, 128);
 
   fclose(in);
 
-  if (!dict)
+  if (!type)
     return 1;
 
-  FILE* out = fopen("out.json", "w");
+  FILE* out = fopen("/dev/null", "w");
 
   if (out)
-    JSON_PrintDict(dict, out);
+    JSON_PrintType(type, out);
 
-  JSON_FreeDict(dict);
+  JSON_FreeType(type);
 
   fclose(out);
 
   return 0;
 }
 
-int hashType(const JSON_Type* type, size_t* hash)
+size_t hashType(const char* key)
 {
-  if (type->label == NULL)
-  {
-    __JSON_SetError(JSON_EHASH_NHASHABLE);
-    return -1;
-  }
+  size_t hash = 0;
 
-  const char* str = type->label;
+  while (*key)
+    hash += (size_t)(*(key++));
 
-  *hash = 0;
-
-  while (*str)
-    *hash += (size_t)(*(str++));
-
-  return 0;
+  return hash;
 }

@@ -33,14 +33,14 @@
                      JSON_LTYPE* locP,
                      FILE* fd);
 
-  int JSON_parse(struct JSON_Dict**,
+  int JSON_parse(struct JSON_Type**,
                  FILE* fd,
                  JSON_Hash hashFunc,
                  size_t dictSize,
                  size_t listSize);
 
   void JSON_error(JSON_LTYPE* locP,
-                  struct JSON_Dict**,
+                  struct JSON_Type**,
                   FILE* fd,
                   JSON_Hash hashFunc,
                   size_t dictSize,
@@ -51,7 +51,7 @@
 /*============================ Bison Definitions =============================*/
 %code requires {
 #include "json.h"
-  typedef int (*JSON_Hash) (const struct JSON_Type*, size_t*);
+  typedef size_t (*JSON_Hash) (const char*);
  }
 
 %union {
@@ -69,7 +69,7 @@
 %define api.pure full
 %error-verbose
 
-%parse-param {struct JSON_Dict** dict}
+%parse-param {struct JSON_Type** type}
 %parse-param {FILE* fd}
 %parse-param {JSON_Hash hashFunc}
 %parse-param {size_t dictSize}
@@ -101,7 +101,32 @@ START:
 |
 START object
 {
-  *dict = $2;
+  *type = JSON_MallocType(NULL, JSON_DICT);
+
+  if (*type)
+  {
+    (*type)->dict = $2;
+  }
+  else
+  {
+    perror(JSON_GetError());
+    YYABORT;
+  }
+}
+|
+START array
+{
+  *type = JSON_MallocType(NULL, JSON_LIST);
+
+  if (*type)
+  {
+    (*type)->list = $2;
+  }
+  else
+  {
+    perror(JSON_GetError());
+    YYABORT;
+  }
 }
 ;
 
@@ -120,10 +145,10 @@ entry
   $$ = JSON_MallocDict(dictSize, hashFunc);
 
   if ($$)
-    JSON_SetDict($$, $1);
+    JSON_SetDictValue($$, $1); // Can't have overwriten value
   else
   {
-    perror("Failed MallocDict in entry-sequence::entry");
+    perror(JSON_GetError());
     YYABORT;
   }
 
@@ -131,7 +156,10 @@ entry
 |
 entry-sequence ',' entry
 {
-  JSON_SetDict($1, $3);
+  JSON_Type* ow = JSON_SetDictValue($1, $3);
+
+  JSON_FreeType(ow);
+
   $$ = $1;
 }
 ;
@@ -156,17 +184,28 @@ value
   $$ = JSON_MallocList(listSize);
 
   if ($$)
-    JSON_PushList($$, $1);
+  {
+    if (JSON_PushList($$, $1) != 0)
+    {
+      fprintf(stderr, "%s", JSON_GetError());
+      YYABORT;
+    }
+  }
   else
   {
-    perror("Failed MallocList in value-sequence::value");
+    perror(JSON_GetError());
     YYABORT;
   }
 }
 |
 value-sequence ',' value
 {
-  JSON_PushList($1, $3);
+  if (JSON_PushList($1, $3) != 0)
+  {
+    fprintf(stderr, "%s", JSON_GetError());
+    YYABORT;
+  }
+
   $$ = $1;
 }
 ;
@@ -180,7 +219,7 @@ STR
     $$->str = strdup($1);
   else
   {
-    perror("Failed MallocType in value::STR");
+    perror(JSON_GetError());
     YYABORT;
   }
 
@@ -195,7 +234,7 @@ NUM
     $$->num = $1;
   else
   {
-    perror("Failed MallocType in value::NUM");
+    perror(JSON_GetError());
     YYABORT;
   }
 }
@@ -208,9 +247,8 @@ object
     $$->dict = $1;
   else
   {
-    perror("Failed MallocType in value::object");
+    perror(JSON_GetError());
     YYABORT;
-
   }
 }
 |
@@ -222,7 +260,7 @@ array
     $$->list = $1;
   else
   {
-    perror("Failed MallocType in value::list");
+    perror(JSON_GetError());
     YYABORT;
   }
 }
@@ -235,16 +273,15 @@ BOOL
     $$->bool = $1;
   else
   {
-    perror("Failed MallocType in value::BOOL");
+    perror(JSON_GetError());
     YYABORT;
   }
 }
 ;
-
 %%
 /*  ================================ Epilogue ================================  */
 void JSON_error(JSON_LTYPE* locP,
-                struct JSON_Dict** dict,
+                struct JSON_Type** type,
                 FILE* fd,
                 JSON_Hash hashFunc,
                 size_t dictSize,

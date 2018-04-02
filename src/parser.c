@@ -85,14 +85,14 @@
                      JSON_LTYPE* locP,
                      FILE* fd);
 
-  int JSON_parse(struct JSON_Dict**,
+  int JSON_parse(struct JSON_Type**,
                  FILE* fd,
                  JSON_Hash hashFunc,
                  size_t dictSize,
                  size_t listSize);
 
   void JSON_error(JSON_LTYPE* locP,
-                  struct JSON_Dict**,
+                  struct JSON_Type**,
                   FILE* fd,
                   JSON_Hash hashFunc,
                   size_t dictSize,
@@ -140,7 +140,7 @@ extern int JSON_debug;
 #line 52 "inc/parser.y" /* yacc.c:355  */
 
 #include "json.h"
-  typedef int (*JSON_Hash) (const struct JSON_Type*, size_t*);
+  typedef size_t (*JSON_Hash) (const char*);
  
 
 #line 147 "src/parser.c" /* yacc.c:355  */
@@ -194,7 +194,7 @@ struct JSON_LTYPE
 
 
 
-int JSON_parse (struct JSON_Dict** dict, FILE* fd, JSON_Hash hashFunc, size_t dictSize, size_t listSize);
+int JSON_parse (struct JSON_Type** type, FILE* fd, JSON_Hash hashFunc, size_t dictSize, size_t listSize);
 
 #endif /* !YY_JSON_INC_PARSER_H_INCLUDED  */
 
@@ -444,16 +444,16 @@ union yyalloc
 /* YYFINAL -- State number of the termination state.  */
 #define YYFINAL  2
 /* YYLAST -- Last index in YYTABLE.  */
-#define YYLAST   16
+#define YYLAST   18
 
 /* YYNTOKENS -- Number of terminals.  */
 #define YYNTOKENS  12
 /* YYNNTS -- Number of nonterminals.  */
 #define YYNNTS  8
 /* YYNRULES -- Number of rules.  */
-#define YYNRULES  15
+#define YYNRULES  16
 /* YYNSTATES -- Number of states.  */
-#define YYNSTATES  24
+#define YYNSTATES  25
 
 /* YYTRANSLATE[YYX] -- Symbol number corresponding to YYX as returned
    by yylex, with out-of-bounds checking.  */
@@ -498,10 +498,10 @@ static const yytype_uint8 yytranslate[] =
 
 #if JSON_DEBUG
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
-static const yytype_uint8 yyrline[] =
+static const yytype_uint16 yyrline[] =
 {
-       0,    99,    99,   102,   109,   118,   132,   140,   147,   154,
-     167,   175,   190,   203,   217,   230
+       0,    99,    99,   102,   117,   134,   143,   157,   168,   175,
+     182,   201,   214,   229,   242,   255,   268
 };
 #endif
 
@@ -526,10 +526,10 @@ static const yytype_uint16 yytoknum[] =
 };
 # endif
 
-#define YYPACT_NINF -10
+#define YYPACT_NINF -7
 
 #define yypact_value_is_default(Yystate) \
-  (!!((Yystate) == (-10)))
+  (!!((Yystate) == (-7)))
 
 #define YYTABLE_NINF -1
 
@@ -540,9 +540,9 @@ static const yytype_uint16 yytoknum[] =
      STATE-NUM.  */
 static const yytype_int8 yypact[] =
 {
-     -10,     0,   -10,    -4,   -10,     9,   -10,     4,    -1,    -4,
-     -10,   -10,   -10,   -10,    -1,   -10,   -10,   -10,   -10,     3,
-     -10,    -1,   -10,   -10
+      -7,     0,    -7,     1,    -1,    -7,    -7,     8,    -7,     4,
+      -7,    -7,    -7,    -7,    -7,    -6,    -7,    -1,     1,    -7,
+      -1,    -7,    -7,    -7,    -7
 };
 
   /* YYDEFACT[STATE-NUM] -- Default reduction number in state STATE-NUM.
@@ -550,21 +550,21 @@ static const yytype_int8 yypact[] =
      means the default is an error.  */
 static const yytype_uint8 yydefact[] =
 {
-       2,     0,     1,     0,     3,     0,     5,     0,     0,     0,
-       7,    15,    12,    11,     0,    13,    14,     4,     6,     0,
-       9,     0,     8,    10
+       2,     0,     1,     0,     0,     3,     4,     0,     6,     0,
+      16,    13,    12,    14,    15,     0,    10,     0,     0,     8,
+       0,     9,     5,     7,    11
 };
 
   /* YYPGOTO[NTERM-NUM].  */
 static const yytype_int8 yypgoto[] =
 {
-     -10,   -10,    -3,   -10,    15,   -10,   -10,    -9
+      -7,    -7,    -2,    -7,    16,    17,    -7,    -5
 };
 
   /* YYDEFGOTO[NTERM-NUM].  */
 static const yytype_int8 yydefgoto[] =
 {
-      -1,     1,     6,     7,    15,    16,    19,    17
+      -1,     1,     8,     9,    13,    14,    15,    16
 };
 
   /* YYTABLE[YYPACT[STATE-NUM]] -- What to do in state STATE-NUM.  If
@@ -572,37 +572,37 @@ static const yytype_int8 yydefgoto[] =
      number is the opposite.  If YYTABLE_NINF, syntax error.  */
 static const yytype_uint8 yytable[] =
 {
-       2,     5,    11,    12,    13,    20,    18,     3,     3,    14,
-      21,     9,    23,    10,    22,     8,     4
+       2,    20,    10,    11,    12,    21,     7,     3,     3,     4,
+       4,    18,    22,    19,    17,    24,    23,     5,     6
 };
 
 static const yytype_uint8 yycheck[] =
 {
-       0,     5,     3,     4,     5,    14,     9,     8,     8,    10,
-       7,     7,    21,     9,    11,     6,     1
+       0,     7,     3,     4,     5,    11,     5,     8,     8,    10,
+      10,     7,    17,     9,     6,    20,    18,     1,     1
 };
 
   /* YYSTOS[STATE-NUM] -- The (internal number of the) accessing
      symbol of state STATE-NUM.  */
 static const yytype_uint8 yystos[] =
 {
-       0,    13,     0,     8,    16,     5,    14,    15,     6,     7,
-       9,     3,     4,     5,    10,    16,    17,    19,    14,    18,
-      19,     7,    11,    19
+       0,    13,     0,     8,    10,    16,    17,     5,    14,    15,
+       3,     4,     5,    16,    17,    18,    19,     6,     7,     9,
+       7,    11,    19,    14,    19
 };
 
   /* YYR1[YYN] -- Symbol number of symbol that rule YYN derives.  */
 static const yytype_uint8 yyr1[] =
 {
-       0,    12,    13,    13,    14,    15,    15,    16,    17,    18,
-      18,    19,    19,    19,    19,    19
+       0,    12,    13,    13,    13,    14,    15,    15,    16,    17,
+      18,    18,    19,    19,    19,    19,    19
 };
 
   /* YYR2[YYN] -- Number of symbols on the right hand side of rule YYN.  */
 static const yytype_uint8 yyr2[] =
 {
-       0,     2,     0,     2,     3,     1,     3,     3,     3,     1,
-       3,     1,     1,     1,     1,     1
+       0,     2,     0,     2,     2,     3,     1,     3,     3,     3,
+       1,     3,     1,     1,     1,     1,     1
 };
 
 
@@ -630,7 +630,7 @@ do                                                              \
     }                                                           \
   else                                                          \
     {                                                           \
-      yyerror (&yylloc, dict, fd, hashFunc, dictSize, listSize, YY_("syntax error: cannot back up")); \
+      yyerror (&yylloc, type, fd, hashFunc, dictSize, listSize, YY_("syntax error: cannot back up")); \
       YYERROR;                                                  \
     }                                                           \
 while (0)
@@ -732,7 +732,7 @@ do {                                                                      \
     {                                                                     \
       YYFPRINTF (stderr, "%s ", Title);                                   \
       yy_symbol_print (stderr,                                            \
-                  Type, Value, Location, dict, fd, hashFunc, dictSize, listSize); \
+                  Type, Value, Location, type, fd, hashFunc, dictSize, listSize); \
       YYFPRINTF (stderr, "\n");                                           \
     }                                                                     \
 } while (0)
@@ -743,12 +743,12 @@ do {                                                                      \
 `----------------------------------------*/
 
 static void
-yy_symbol_value_print (FILE *yyoutput, int yytype, YYSTYPE const * const yyvaluep, YYLTYPE const * const yylocationp, struct JSON_Dict** dict, FILE* fd, JSON_Hash hashFunc, size_t dictSize, size_t listSize)
+yy_symbol_value_print (FILE *yyoutput, int yytype, YYSTYPE const * const yyvaluep, YYLTYPE const * const yylocationp, struct JSON_Type** type, FILE* fd, JSON_Hash hashFunc, size_t dictSize, size_t listSize)
 {
   FILE *yyo = yyoutput;
   YYUSE (yyo);
   YYUSE (yylocationp);
-  YYUSE (dict);
+  YYUSE (type);
   YYUSE (fd);
   YYUSE (hashFunc);
   YYUSE (dictSize);
@@ -768,14 +768,14 @@ yy_symbol_value_print (FILE *yyoutput, int yytype, YYSTYPE const * const yyvalue
 `--------------------------------*/
 
 static void
-yy_symbol_print (FILE *yyoutput, int yytype, YYSTYPE const * const yyvaluep, YYLTYPE const * const yylocationp, struct JSON_Dict** dict, FILE* fd, JSON_Hash hashFunc, size_t dictSize, size_t listSize)
+yy_symbol_print (FILE *yyoutput, int yytype, YYSTYPE const * const yyvaluep, YYLTYPE const * const yylocationp, struct JSON_Type** type, FILE* fd, JSON_Hash hashFunc, size_t dictSize, size_t listSize)
 {
   YYFPRINTF (yyoutput, "%s %s (",
              yytype < YYNTOKENS ? "token" : "nterm", yytname[yytype]);
 
   YY_LOCATION_PRINT (yyoutput, *yylocationp);
   YYFPRINTF (yyoutput, ": ");
-  yy_symbol_value_print (yyoutput, yytype, yyvaluep, yylocationp, dict, fd, hashFunc, dictSize, listSize);
+  yy_symbol_value_print (yyoutput, yytype, yyvaluep, yylocationp, type, fd, hashFunc, dictSize, listSize);
   YYFPRINTF (yyoutput, ")");
 }
 
@@ -808,7 +808,7 @@ do {                                                            \
 `------------------------------------------------*/
 
 static void
-yy_reduce_print (yytype_int16 *yyssp, YYSTYPE *yyvsp, YYLTYPE *yylsp, int yyrule, struct JSON_Dict** dict, FILE* fd, JSON_Hash hashFunc, size_t dictSize, size_t listSize)
+yy_reduce_print (yytype_int16 *yyssp, YYSTYPE *yyvsp, YYLTYPE *yylsp, int yyrule, struct JSON_Type** type, FILE* fd, JSON_Hash hashFunc, size_t dictSize, size_t listSize)
 {
   unsigned long int yylno = yyrline[yyrule];
   int yynrhs = yyr2[yyrule];
@@ -822,7 +822,7 @@ yy_reduce_print (yytype_int16 *yyssp, YYSTYPE *yyvsp, YYLTYPE *yylsp, int yyrule
       yy_symbol_print (stderr,
                        yystos[yyssp[yyi + 1 - yynrhs]],
                        &(yyvsp[(yyi + 1) - (yynrhs)])
-                       , &(yylsp[(yyi + 1) - (yynrhs)])                       , dict, fd, hashFunc, dictSize, listSize);
+                       , &(yylsp[(yyi + 1) - (yynrhs)])                       , type, fd, hashFunc, dictSize, listSize);
       YYFPRINTF (stderr, "\n");
     }
 }
@@ -830,7 +830,7 @@ yy_reduce_print (yytype_int16 *yyssp, YYSTYPE *yyvsp, YYLTYPE *yylsp, int yyrule
 # define YY_REDUCE_PRINT(Rule)          \
 do {                                    \
   if (yydebug)                          \
-    yy_reduce_print (yyssp, yyvsp, yylsp, Rule, dict, fd, hashFunc, dictSize, listSize); \
+    yy_reduce_print (yyssp, yyvsp, yylsp, Rule, type, fd, hashFunc, dictSize, listSize); \
 } while (0)
 
 /* Nonzero means print parse trace.  It is left uninitialized so that
@@ -1088,11 +1088,11 @@ yysyntax_error (YYSIZE_T *yymsg_alloc, char **yymsg,
 `-----------------------------------------------*/
 
 static void
-yydestruct (const char *yymsg, int yytype, YYSTYPE *yyvaluep, YYLTYPE *yylocationp, struct JSON_Dict** dict, FILE* fd, JSON_Hash hashFunc, size_t dictSize, size_t listSize)
+yydestruct (const char *yymsg, int yytype, YYSTYPE *yyvaluep, YYLTYPE *yylocationp, struct JSON_Type** type, FILE* fd, JSON_Hash hashFunc, size_t dictSize, size_t listSize)
 {
   YYUSE (yyvaluep);
   YYUSE (yylocationp);
-  YYUSE (dict);
+  YYUSE (type);
   YYUSE (fd);
   YYUSE (hashFunc);
   YYUSE (dictSize);
@@ -1161,7 +1161,7 @@ yydestruct (const char *yymsg, int yytype, YYSTYPE *yyvaluep, YYLTYPE *yylocatio
 `----------*/
 
 int
-yyparse (struct JSON_Dict** dict, FILE* fd, JSON_Hash hashFunc, size_t dictSize, size_t listSize)
+yyparse (struct JSON_Type** type, FILE* fd, JSON_Hash hashFunc, size_t dictSize, size_t listSize)
 {
 /* The lookahead symbol.  */
 int yychar;
@@ -1437,90 +1437,132 @@ yyreduce:
         case 3:
 #line 103 "inc/parser.y" /* yacc.c:1646  */
     {
-  *dict = (yyvsp[0].dict);
+  *type = JSON_MallocType(NULL, JSON_DICT);
+
+  if (*type)
+  {
+    (*type)->dict = (yyvsp[0].dict);
+  }
+  else
+  {
+    perror(JSON_GetError());
+    YYABORT;
+  }
 }
-#line 1443 "src/parser.c" /* yacc.c:1646  */
+#line 1453 "src/parser.c" /* yacc.c:1646  */
     break;
 
   case 4:
-#line 110 "inc/parser.y" /* yacc.c:1646  */
+#line 118 "inc/parser.y" /* yacc.c:1646  */
+    {
+  *type = JSON_MallocType(NULL, JSON_LIST);
+
+  if (*type)
+  {
+    (*type)->list = (yyvsp[0].list);
+  }
+  else
+  {
+    perror(JSON_GetError());
+    YYABORT;
+  }
+}
+#line 1471 "src/parser.c" /* yacc.c:1646  */
+    break;
+
+  case 5:
+#line 135 "inc/parser.y" /* yacc.c:1646  */
     {
   (yyvsp[0].type)->label = strdup((yyvsp[-2].str));
   (yyval.type) = (yyvsp[0].type);
   free((yyvsp[-2].str));
 }
-#line 1453 "src/parser.c" /* yacc.c:1646  */
+#line 1481 "src/parser.c" /* yacc.c:1646  */
     break;
 
-  case 5:
-#line 119 "inc/parser.y" /* yacc.c:1646  */
+  case 6:
+#line 144 "inc/parser.y" /* yacc.c:1646  */
     {
   (yyval.dict) = JSON_MallocDict(dictSize, hashFunc);
 
   if ((yyval.dict))
-    JSON_SetDict((yyval.dict), (yyvsp[0].type));
+    JSON_SetDictValue((yyval.dict), (yyvsp[0].type)); // Can't have overwriten value
   else
   {
-    perror("Failed MallocDict in entry-sequence::entry");
+    perror(JSON_GetError());
     YYABORT;
   }
 
 }
-#line 1470 "src/parser.c" /* yacc.c:1646  */
-    break;
-
-  case 6:
-#line 133 "inc/parser.y" /* yacc.c:1646  */
-    {
-  JSON_SetDict((yyvsp[-2].dict), (yyvsp[0].type));
-  (yyval.dict) = (yyvsp[-2].dict);
-}
-#line 1479 "src/parser.c" /* yacc.c:1646  */
+#line 1498 "src/parser.c" /* yacc.c:1646  */
     break;
 
   case 7:
-#line 141 "inc/parser.y" /* yacc.c:1646  */
+#line 158 "inc/parser.y" /* yacc.c:1646  */
     {
-  (yyval.dict) = (yyvsp[-1].dict);
+  JSON_Type* ow = JSON_SetDictValue((yyvsp[-2].dict), (yyvsp[0].type));
+
+  JSON_FreeType(ow);
+
+  (yyval.dict) = (yyvsp[-2].dict);
 }
-#line 1487 "src/parser.c" /* yacc.c:1646  */
+#line 1510 "src/parser.c" /* yacc.c:1646  */
     break;
 
   case 8:
-#line 148 "inc/parser.y" /* yacc.c:1646  */
+#line 169 "inc/parser.y" /* yacc.c:1646  */
     {
-  (yyval.list) = (yyvsp[-1].list);
+  (yyval.dict) = (yyvsp[-1].dict);
 }
-#line 1495 "src/parser.c" /* yacc.c:1646  */
+#line 1518 "src/parser.c" /* yacc.c:1646  */
     break;
 
   case 9:
-#line 155 "inc/parser.y" /* yacc.c:1646  */
+#line 176 "inc/parser.y" /* yacc.c:1646  */
+    {
+  (yyval.list) = (yyvsp[-1].list);
+}
+#line 1526 "src/parser.c" /* yacc.c:1646  */
+    break;
+
+  case 10:
+#line 183 "inc/parser.y" /* yacc.c:1646  */
     {
   (yyval.list) = JSON_MallocList(listSize);
 
   if ((yyval.list))
-    JSON_PushList((yyval.list), (yyvsp[0].type));
+  {
+    if (JSON_PushList((yyval.list), (yyvsp[0].type)) != 0)
+    {
+      fprintf(stderr, "%s", JSON_GetError());
+      YYABORT;
+    }
+  }
   else
   {
-    perror("Failed MallocList in value-sequence::value");
+    perror(JSON_GetError());
     YYABORT;
   }
 }
-#line 1511 "src/parser.c" /* yacc.c:1646  */
-    break;
-
-  case 10:
-#line 168 "inc/parser.y" /* yacc.c:1646  */
-    {
-  JSON_PushList((yyvsp[-2].list), (yyvsp[0].type));
-  (yyval.list) = (yyvsp[-2].list);
-}
-#line 1520 "src/parser.c" /* yacc.c:1646  */
+#line 1548 "src/parser.c" /* yacc.c:1646  */
     break;
 
   case 11:
-#line 176 "inc/parser.y" /* yacc.c:1646  */
+#line 202 "inc/parser.y" /* yacc.c:1646  */
+    {
+  if (JSON_PushList((yyvsp[-2].list), (yyvsp[0].type)) != 0)
+  {
+    fprintf(stderr, "%s", JSON_GetError());
+    YYABORT;
+  }
+
+  (yyval.list) = (yyvsp[-2].list);
+}
+#line 1562 "src/parser.c" /* yacc.c:1646  */
+    break;
+
+  case 12:
+#line 215 "inc/parser.y" /* yacc.c:1646  */
     {
   (yyval.type) = JSON_MallocType(NULL, JSON_STRING);
 
@@ -1528,17 +1570,17 @@ yyreduce:
     (yyval.type)->str = strdup((yyvsp[0].str));
   else
   {
-    perror("Failed MallocType in value::STR");
+    perror(JSON_GetError());
     YYABORT;
   }
 
   free((yyvsp[0].str));
 }
-#line 1538 "src/parser.c" /* yacc.c:1646  */
+#line 1580 "src/parser.c" /* yacc.c:1646  */
     break;
 
-  case 12:
-#line 191 "inc/parser.y" /* yacc.c:1646  */
+  case 13:
+#line 230 "inc/parser.y" /* yacc.c:1646  */
     {
   (yyval.type) = JSON_MallocType(NULL, JSON_NUMBER);
 
@@ -1546,15 +1588,15 @@ yyreduce:
     (yyval.type)->num = (yyvsp[0].num);
   else
   {
-    perror("Failed MallocType in value::NUM");
+    perror(JSON_GetError());
     YYABORT;
   }
 }
-#line 1554 "src/parser.c" /* yacc.c:1646  */
+#line 1596 "src/parser.c" /* yacc.c:1646  */
     break;
 
-  case 13:
-#line 204 "inc/parser.y" /* yacc.c:1646  */
+  case 14:
+#line 243 "inc/parser.y" /* yacc.c:1646  */
     {
   (yyval.type) = JSON_MallocType(NULL, JSON_DICT);
 
@@ -1562,16 +1604,15 @@ yyreduce:
     (yyval.type)->dict = (yyvsp[0].dict);
   else
   {
-    perror("Failed MallocType in value::object");
+    perror(JSON_GetError());
     YYABORT;
-
   }
 }
-#line 1571 "src/parser.c" /* yacc.c:1646  */
+#line 1612 "src/parser.c" /* yacc.c:1646  */
     break;
 
-  case 14:
-#line 218 "inc/parser.y" /* yacc.c:1646  */
+  case 15:
+#line 256 "inc/parser.y" /* yacc.c:1646  */
     {
   (yyval.type) = JSON_MallocType(NULL, JSON_LIST);
 
@@ -1579,15 +1620,15 @@ yyreduce:
     (yyval.type)->list = (yyvsp[0].list);
   else
   {
-    perror("Failed MallocType in value::list");
+    perror(JSON_GetError());
     YYABORT;
   }
 }
-#line 1587 "src/parser.c" /* yacc.c:1646  */
+#line 1628 "src/parser.c" /* yacc.c:1646  */
     break;
 
-  case 15:
-#line 231 "inc/parser.y" /* yacc.c:1646  */
+  case 16:
+#line 269 "inc/parser.y" /* yacc.c:1646  */
     {
   (yyval.type) = JSON_MallocType(NULL, JSON_BOOLEAN);
 
@@ -1595,15 +1636,15 @@ yyreduce:
     (yyval.type)->bool = (yyvsp[0].bool);
   else
   {
-    perror("Failed MallocType in value::BOOL");
+    perror(JSON_GetError());
     YYABORT;
   }
 }
-#line 1603 "src/parser.c" /* yacc.c:1646  */
+#line 1644 "src/parser.c" /* yacc.c:1646  */
     break;
 
 
-#line 1607 "src/parser.c" /* yacc.c:1646  */
+#line 1648 "src/parser.c" /* yacc.c:1646  */
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -1654,7 +1695,7 @@ yyerrlab:
     {
       ++yynerrs;
 #if ! YYERROR_VERBOSE
-      yyerror (&yylloc, dict, fd, hashFunc, dictSize, listSize, YY_("syntax error"));
+      yyerror (&yylloc, type, fd, hashFunc, dictSize, listSize, YY_("syntax error"));
 #else
 # define YYSYNTAX_ERROR yysyntax_error (&yymsg_alloc, &yymsg, \
                                         yyssp, yytoken)
@@ -1681,7 +1722,7 @@ yyerrlab:
                 yymsgp = yymsg;
               }
           }
-        yyerror (&yylloc, dict, fd, hashFunc, dictSize, listSize, yymsgp);
+        yyerror (&yylloc, type, fd, hashFunc, dictSize, listSize, yymsgp);
         if (yysyntax_error_status == 2)
           goto yyexhaustedlab;
       }
@@ -1705,7 +1746,7 @@ yyerrlab:
       else
         {
           yydestruct ("Error: discarding",
-                      yytoken, &yylval, &yylloc, dict, fd, hashFunc, dictSize, listSize);
+                      yytoken, &yylval, &yylloc, type, fd, hashFunc, dictSize, listSize);
           yychar = YYEMPTY;
         }
     }
@@ -1762,7 +1803,7 @@ yyerrlab1:
 
       yyerror_range[1] = *yylsp;
       yydestruct ("Error: popping",
-                  yystos[yystate], yyvsp, yylsp, dict, fd, hashFunc, dictSize, listSize);
+                  yystos[yystate], yyvsp, yylsp, type, fd, hashFunc, dictSize, listSize);
       YYPOPSTACK (1);
       yystate = *yyssp;
       YY_STACK_PRINT (yyss, yyssp);
@@ -1804,7 +1845,7 @@ yyabortlab:
 | yyexhaustedlab -- memory exhaustion comes here.  |
 `-------------------------------------------------*/
 yyexhaustedlab:
-  yyerror (&yylloc, dict, fd, hashFunc, dictSize, listSize, YY_("memory exhausted"));
+  yyerror (&yylloc, type, fd, hashFunc, dictSize, listSize, YY_("memory exhausted"));
   yyresult = 2;
   /* Fall through.  */
 #endif
@@ -1816,7 +1857,7 @@ yyreturn:
          user semantic actions for why this is necessary.  */
       yytoken = YYTRANSLATE (yychar);
       yydestruct ("Cleanup: discarding lookahead",
-                  yytoken, &yylval, &yylloc, dict, fd, hashFunc, dictSize, listSize);
+                  yytoken, &yylval, &yylloc, type, fd, hashFunc, dictSize, listSize);
     }
   /* Do not reclaim the symbols of the rule whose action triggered
      this YYABORT or YYACCEPT.  */
@@ -1825,7 +1866,7 @@ yyreturn:
   while (yyssp != yyss)
     {
       yydestruct ("Cleanup: popping",
-                  yystos[*yyssp], yyvsp, yylsp, dict, fd, hashFunc, dictSize, listSize);
+                  yystos[*yyssp], yyvsp, yylsp, type, fd, hashFunc, dictSize, listSize);
       YYPOPSTACK (1);
     }
 #ifndef yyoverflow
@@ -1838,11 +1879,11 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 244 "inc/parser.y" /* yacc.c:1906  */
+#line 281 "inc/parser.y" /* yacc.c:1906  */
 
 /*  ================================ Epilogue ================================  */
 void JSON_error(JSON_LTYPE* locP,
-                struct JSON_Dict** dict,
+                struct JSON_Type** type,
                 FILE* fd,
                 JSON_Hash hashFunc,
                 size_t dictSize,

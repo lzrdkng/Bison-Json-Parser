@@ -35,6 +35,7 @@ typedef enum JSON_Errors
   JSON_EDICT_NHASH_FUNC,
   JSON_ELIST_FAILED_REALLOC,
   JSON_EHASH_NHASHABLE,
+  JSON_EDICT_SIZE_EQZ,
   JSON_USER_BUFFER,
   JSON_ETOTAL
 } JSON_Errors;
@@ -60,9 +61,9 @@ typedef struct JSON_Error
 /*=========================== Function Prototypes ============================*/
 /**
  * @brief Retrieved the last error raised.
- * @return A pointer to the current JSON_Error structure.
+ * @return The current error messa.ge
  */
-const JSON_Error* JSON_GetError();
+const char* JSON_GetError();
 /*============================================================================*/
 /**
  * @brief Reset the pointer returned by JSON_GetError to NULL.
@@ -80,9 +81,9 @@ void JSON_ClearError();
  * success, a negative number on failure.
  *
  * @note On success, the next call to JSON_GetError will return the
- * newly created error. On failure, the next call to JSON_GetError
- * will return NULL. Multiple calls to this function will overwrite
- * previous calls.
+ * newly created error message. On failure, the next call to
+ * JSON_GetError will return NULL. Multiple calls to this function
+ * will overwrite previous calls.
  *
  * @warning The user buffer error as a maximum length of MAX_USER_BUFFER
  * characters. If the formated message is longer than that, 'vsprintf'

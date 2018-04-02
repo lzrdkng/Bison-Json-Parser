@@ -27,6 +27,18 @@
 /*========================= Function Implementations =========================*/
 JSON_Dict* JSON_MallocDict(size_t size, JSON_HashFunc hash)
 {
+  if (size == 0)
+  {
+    __JSON_SetError(JSON_EDICT_SIZE_EQZ);
+    return NULL;
+  }
+
+  if (hash == NULL)
+  {
+    __JSON_SetError(JSON_EDICT_NHASH_FUNC);
+    return NULL;
+  }
+
   JSON_Dict* dict = calloc(1, sizeof(JSON_Dict));
 
   if (dict)
@@ -42,68 +54,50 @@ JSON_Dict* JSON_MallocDict(size_t size, JSON_HashFunc hash)
 /*============================================================================*/
 void JSON_FreeDict(JSON_Dict* dict)
 {
-  if (dict->buckets)
+  if (dict)
   {
-    for (size_t i=0; i < dict->size; ++i)
+    if (dict->buckets)
     {
-      JSON_Type** headP = &dict->buckets[i];
-      JSON_Type*  head  = *headP;
-
-      while (head)
+      for (size_t i=0; i < dict->size; ++i)
       {
-        *headP = head->next;
-        JSON_FreeType(head);
-        head = *headP;
+        JSON_Type** headP = &dict->buckets[i];
+        JSON_Type*  head  = *headP;
+
+        while (head)
+        {
+          *headP = head->next;
+          JSON_FreeType(head);
+          head = *headP;
+        }
       }
+
+      free(dict->buckets);
     }
 
-    free(dict->buckets);
+    free(dict);
   }
-
-  free(dict);
 }
 /*============================================================================*/
-int JSON_GetDict(const JSON_Type* key, const JSON_Dict* dict, JSON_Type** value)
+const JSON_Type* JSON_GetDictValue(const char* key,
+                                   const JSON_Dict* dict)
 {
-  if (dict->hash == NULL)
+  size_t i       = dict->hash(key) % dict->size;
+  JSON_Type* ptr = dict->buckets[i];
+
+  while (ptr)
   {
-    __JSON_SetError(JSON_EDICT_NHASH_FUNC);
-    return -1;
-  }
-
-  size_t i;
-
-  if (dict->hash(key, &i) < 0)
-    return -1;
-
-  i %= dict->size;
-
-  for (JSON_Type* ptr = dict->buckets[i]; ptr; ptr = ptr->next)
-  {
-    if (strcmp(ptr->label, key->label) == 0)
-    {
-      *value = ptr;
+    if (strcmp(ptr->label, key) == 0)
       break;
-    }
+
+    ptr = ptr->next;
   }
 
-  return 0;
+  return ptr;;
 }
 /*============================================================================*/
-int JSON_SetDict(JSON_Dict* dict, JSON_Type* value)
+JSON_Type* JSON_SetDictValue(JSON_Dict* dict, JSON_Type* value)
 {
-  if (dict->hash == NULL)
-  {
-    __JSON_SetError(JSON_EDICT_NHASH_FUNC);
-    return -1;
-  }
-
-  size_t i;
-
-  if (dict->hash(value, &i) < 0)
-    return -1;
-
-  i %= dict->size;
+  size_t i = dict->hash(value->label) % dict->size;
 
   JSON_Type** headP = &(dict->buckets[i]);
   JSON_Type*  head  = *headP;
@@ -113,9 +107,9 @@ int JSON_SetDict(JSON_Dict* dict, JSON_Type* value)
     if (strcmp(head->label, value->label) == 0)
     {
       value->next = head->next;
-      *headP = value;
-      JSON_FreeType(head);
-      return 0;
+      *headP      = value;
+
+      break;
     }
 
     headP = &(head->next);
@@ -123,5 +117,63 @@ int JSON_SetDict(JSON_Dict* dict, JSON_Type* value)
   }
 
   *headP = value;
-  return 0;
+
+  return head;
+}
+/*============================================================================*/
+int JSON_DelDictValue(const char* key, JSON_Dict* dict)
+{
+  size_t i = dict->hash(key) % dict->size;
+
+  JSON_Type** headP = &(dict->buckets[i]);
+  JSON_Type*  head  = *headP;
+
+  while (head)
+  {
+    if (strcmp(head->label, key))
+    {
+      *headP = head->next;
+      JSON_FreeType(head);
+
+      return 0;
+    }
+
+    headP = &head->next;
+    head  = *headP;
+  }
+
+  return -1;
+}
+/*============================================================================*/
+JSON_Type* JSON_RmDictValue(const char* key, JSON_Dict* dict)
+{
+  size_t i = dict->hash(key) % dict->size;
+
+  JSON_Type** headP = &dict->buckets[i];
+  JSON_Type*  head  = *headP;
+
+  while (head)
+  {
+    if (strcmp(head->label, key) == 0 )
+    {
+      *headP = head->next;
+
+      break;
+    }
+
+    headP = &head->next;
+    head  = *headP;
+  }
+
+  return head;
+}
+/*============================================================================*/
+JSON_Type* JSON_MvDictValue(const char* key, JSON_Dict* src, JSON_Dict* dst)
+{
+  JSON_Type* ptr = JSON_RmDictValue(key, src);
+
+  if (ptr == NULL)
+    return NULL;
+
+  return JSON_SetDictValue(dst, ptr);
 }

@@ -24,13 +24,14 @@
 /*============================= Global Variables =============================*/
 static char user_buffer[MAX_USER_BUFFER];
 
-static const JSON_Error* error_g = NULL;
+static const char* error_g = NULL;
 
 static const JSON_Error errors_g[JSON_ETOTAL+1] =
 {
   {JSON_EDICT_NHASH_FUNC,     "JSON_Dict as no hash function associated with it.\n"},
   {JSON_ELIST_FAILED_REALLOC, "JSON_List failed to realloc its size.\n"},
   {JSON_EHASH_NHASHABLE,      "Type is not hashable.\n"},
+  {JSON_EDICT_SIZE_EQZ,       "Size of dict hash table equal to 0.\n"},
   {JSON_USER_BUFFER,          user_buffer},
   {JSON_ETOTAL, NULL}
 };
@@ -41,7 +42,7 @@ void JSON_ClearError()
   error_g = NULL;
 }
 
-const JSON_Error* JSON_GetError()
+const char* JSON_GetError()
 {
   return error_g;
 }
@@ -56,7 +57,7 @@ int JSON_SetError(const char* format, ...)
   code = vsprintf(user_buffer, format, args);
 
   if (code > 0)
-    error_g = &errors_g[JSON_USER_BUFFER];
+    error_g = errors_g[JSON_USER_BUFFER].message;
   else
     JSON_ClearError();
 
@@ -76,7 +77,7 @@ int __JSON_SetError(int errorno)
   if (errorno < 0)
     error_g = NULL;
   else
-    error_g = &errors_g[errorno];
+    error_g = errors_g[errorno].message;
 
   return 0;
 }

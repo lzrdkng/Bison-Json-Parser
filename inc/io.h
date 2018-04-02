@@ -13,8 +13,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _JSON_PRINT_H
-#define _JSON_PRINT_H
+#ifndef _JSON_IO_H
+#define _JSON_IO_H
 
 #include <stdio.h>
 #include "json.h"
@@ -25,4 +25,4 @@ void JSON_PrintList(const JSON_List* list, FILE* fd);
 
 void JSON_PrintDict(const JSON_Dict* dict, FILE* fd);
 
-#endif // _JSON_PRINT_H
+#endif // _JSON_IO_H

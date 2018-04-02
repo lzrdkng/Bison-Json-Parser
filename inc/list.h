@@ -66,13 +66,13 @@ JSON_List* JSON_MallocList(size_t size);
  * @param [in,out] list The 'struct lsit' to free from memory.
  */
 void JSON_FreeList(JSON_List* list);
+/*============================================================================*/
 /*=========================== Function Prototypes ============================*/
-
 /**
  * @brief
  *
  * */
-int JSON_InsertList(JSON_List* list, struct JSON_Type* value, int index);
+int JSON_InsertList(JSON_List* list, struct JSON_Type* value, size_t index);
 /*============================================================================*/
 /**
  * @brief
@@ -84,18 +84,18 @@ int JSON_PushList(JSON_List* list, struct JSON_Type* type);
  * @brief
  *
  * */
-int JSON_PopList(JSON_List* list);
+JSON_Type* JSON_PopList(JSON_List* list);
 /*============================================================================*/
 /**
  * @brief
  *
  * */
-int JSON_RemoveList(JSON_List* list, struct JSON_Type** type);
+JSON_Type* JSON_TopList(JSON_List* list);
 /*============================================================================*/
 /**
  * @brief
  *
  * */
-int JSON_AtList(JSON_List);
+JSON_Type* JSON_AtList(JSON_List* list, size_t index);
 /*============================================================================*/
 #endif // _JSON_LIST_H

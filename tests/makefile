@@ -6,8 +6,8 @@ TARGET      := tests
 
 #The Directories, Source, Includes, Objects, Binary and Resources
 SRCDIR      := src
-INCDIR      := ../inc
-LIBDIR      := ../lib
+INCDIR      := /usr/local/include
+LIBDIR      := /usr/local/lib
 BUILDDIR    := obj
 TARGETDIR   := bin
 RESDIR      := res
@@ -16,13 +16,13 @@ DEPEXT      := d
 OBJEXT      := o
 
 #Flags, Libraries and Includes
-CFLAGS      := -fPIC -Wall -Werror -ggdb -O0
-LIB         := -L${LIBDIR} -lJSON
+CFLAGS      := -fPIC -Wall -Werror -pg -g -O0 -no-pie
+LIB         := -L${LIBDIR} -lJSON -pg
 INC         := -I$(INCDIR)
 INCDEP      := -I$(INCDIR)
 
 # Valgrind
-VOPTIONS := -v
+VOPTIONS := -v --track-origins=yes
 
 #---------------------------------------------------------------------------------
 #DO NOT EDIT BELOW THIS LINE
@@ -32,6 +32,9 @@ OBJECTS     := $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(SOURCES:.$(SRCEXT)=.$(OBJE
 
 #Defauilt Make
 all: directories $(TARGET)
+
+grind: all
+	valgrind $(VOPTIONS) ./bin/tests test.json > valgrind.out 2>&1
 
 #Remake
 remake: cleaner all
@@ -54,7 +57,7 @@ cleaner: clean
 
 #Link
 $(TARGET): $(OBJECTS)
-	$(CC) -Wl,-rpath=$(LIBDIR),-rpath=/usr/local/lib -o $(TARGETDIR)/$(TARGET) $^ $(LIB) && valgrind $(VOPTIONS) ./bin/tests test.json > /dev/null
+	$(CC) $(CFLAGS) -Wl,-rpath=$(LIBDIR),-rpath=/usr/local/lib -o $(TARGETDIR)/$(TARGET) $^ $(LIB)
 
 #Compile
 $(BUILDDIR)/%.$(OBJEXT): $(SRCDIR)/%.$(SRCEXT)
@@ -67,5 +70,4 @@ $(BUILDDIR)/%.$(OBJEXT): $(SRCDIR)/%.$(SRCEXT)
 	@rm -f $(BUILDDIR)/$*.$(DEPEXT).tmp
 
 #Non-File Targets
-.PHONY: all remake clean cleaner resources
-
+.PHONY: all remake clean cleaner resources grind

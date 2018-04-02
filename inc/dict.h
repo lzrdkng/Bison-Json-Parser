@@ -29,10 +29,10 @@
 /*================================= Includes =================================*/
 #include <stdlib.h>
 /*=========================== Forward Declarations ===========================*/
-struct JSON_Type;
-struct JSON_List;
+typedef struct JSON_Type JSON_Type;
+typedef struct JSON_List JSON_List;
 /*================================= Typedefs =================================*/
-typedef int (*JSON_HashFunc) (const struct JSON_Type*, size_t* hash);
+typedef size_t (*JSON_HashFunc) (const char* key);
 /*================================ Structures ================================*/
 /**
  * @struct JSON_Dict
@@ -59,7 +59,10 @@ typedef struct JSON_Dict
   size_t      size;
   struct JSON_Type** buckets;
 } JSON_Dict;
+/*============================================================================*/
 /*=========================== Function Prototypes ============================*/
+
+/*============================================================================*/
 /**
  * @brief Allocate memory for a 'JSON_Dict'.
  *
@@ -69,6 +72,8 @@ typedef struct JSON_Dict
  * @return A pointer to the allocated 'JSON_Dict' or NULL on failure.
  */
 JSON_Dict* JSON_MallocDict(size_t size, JSON_HashFunc hash);
+/*============================================================================*/
+
 /*============================================================================*/
 /**
  * @brief Procedure that free from memory a 'JSON_Dict'.
@@ -80,6 +85,8 @@ JSON_Dict* JSON_MallocDict(size_t size, JSON_HashFunc hash);
  */
 void JSON_FreeDict(JSON_Dict* dict);
 /*============================================================================*/
+
+/*============================================================================*/
 /**
  * @brief Get the bucket of a dict associated with a key.
  *
@@ -88,13 +95,12 @@ void JSON_FreeDict(JSON_Dict* dict);
  *
  * @param [in] dict The 'JSON_Dict' to get the bucket from.
  *
- * @param [out] addr The address of the pointer to fill with the
- * bucket.
- *
- * @return 0 on success, -1 on failure.
+ * @return A pointer to the JSON_Type on success, NULL on failure.
  */
-int JSON_GetDict(const struct JSON_Type* key,
-                 const JSON_Dict* dict, struct JSON_Type** value);
+const JSON_Type* JSON_GetDictValue(const char* key,
+                                   const JSON_Dict* dict);
+/*============================================================================*/
+
 /*============================================================================*/
 /**
  * @brief Set a type in the symbol table of a 'JSON_Dict'.
@@ -103,14 +109,55 @@ int JSON_GetDict(const struct JSON_Type* key,
  *
  * @param [in] ptr A pointer to the type to put in the dict.
  *
- * @return 0 on success, -1 on failure.
+ * @return A pointer to the previous value that has been overwrite, if
+ * any. NULL otherwise.
  */
-int JSON_SetDict(JSON_Dict* dict, struct JSON_Type* ptr);
+JSON_Type* JSON_SetDictValue(JSON_Dict* dict, JSON_Type* value);
+/*============================================================================*/
+
 /*============================================================================*/
 /**
- * @brief
+ * @brief Remove and free from memory a JSON_Type in a JSON_Dict.
+ *
+ * @param [in] key The key associated with the JSON_Type to find.
+ *
+ * @param [in,out] dict The JSON_Dict to search in for.
+ *
+ * @return 0 if a value has been deleted. -1 if not.
  *
  * */
-int JSON_DelDict(const struct JSON_Type* key, JSON_Dict* dict);
+int JSON_DelDictValue(const char* key, JSON_Dict* dict);
+/*============================================================================*/
+
+/*============================================================================*/
+/**
+ * @brief Remove a JSON_Type in a JSON_Dict without removing it from memory.
+ *
+ * @param [in] key The key associated with the JSON_Type to find.
+ *
+ * @param [in,out] dict The JSON_Dict to search in for.
+ *
+ * @rturn A Pointer to the removed JSON_Type on success, NULL if no
+ * value has been removed.
+ */
+JSON_Type* JSON_RmDictValue(const char* key, JSON_Dict* dict);
+/*============================================================================*/
+
+/*============================================================================*/
+/**
+ * @brief Move a JSON_Type in a source JSON_Dict to a destination JSON_Dict.
+ *
+ * @param [in] key The key associated with the JSON_Type to find.
+ *
+ * @param [in,out] src The source JSON_Dict to take ownership from.
+ *
+ * @param [out] dst The destination JSON_Dict to give ownership to.
+ *
+ * @return A pointer to the previous value in 'dst' that has been
+ * overwrite, if any. NULL otherwise.
+ *
+ * @note There's no way to verify if a movement has been made.
+ */
+JSON_Type* JSON_MvDictValue(const char* key, JSON_Dict* src, JSON_Dict* dst);
 /*============================================================================*/
 #endif // _JSON_DICT_H

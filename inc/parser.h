@@ -51,7 +51,7 @@ extern int JSON_debug;
 #line 52 "inc/parser.y" /* yacc.c:1909  */
 
 #include "json.h"
-  typedef int (*JSON_Hash) (const struct JSON_Type*, size_t*);
+  typedef size_t (*JSON_Hash) (const char*);
  
 
 #line 58 "inc/parser.h" /* yacc.c:1909  */
@@ -105,6 +105,6 @@ struct JSON_LTYPE
 
 
 
-int JSON_parse (struct JSON_Dict** dict, FILE* fd, JSON_Hash hashFunc, size_t dictSize, size_t listSize);
+int JSON_parse (struct JSON_Type** type, FILE* fd, JSON_Hash hashFunc, size_t dictSize, size_t listSize);
 
 #endif /* !YY_JSON_INC_PARSER_H_INCLUDED  */

@@ -48,9 +48,8 @@ void JSON_FreeType(JSON_Type* type)
   {
     free(type->label);
     JSON_FreeTypeValue(type);
+    free(type);
   }
-
-  free(type);
 }
 /*============================================================================*/
 void JSON_FreeTypeValue(JSON_Type* type)

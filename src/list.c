@@ -42,7 +42,12 @@ void JSON_FreeList(JSON_List* list)
   if (list->elements)
   {
     for (size_t i = 0; i < list->size; ++i)
-      JSON_FreeType(list->elements[i]);
+    {
+      JSON_Type* ptr = list->elements[i];
+
+      JSON_FreeType(ptr);
+
+    }
 
     free(list->elements);
   }
@@ -65,7 +70,62 @@ int JSON_PushList(JSON_List* list, JSON_Type* type)
     }
   }
 
-  list->elements[(list->index)++] = type;
+  list->elements[list->index++] = type;
 
   return 0;
 }
+/*============================================================================*/
+int JSON_InsertList(JSON_List* list, JSON_Type* value, size_t index)
+{
+  if (index > list->index)
+    return -1;
+
+  if (list->index == list->size)
+  {
+    list->size *= 2;
+    list->elements = realloc(list->elements, sizeof(JSON_Type*) * list->size);
+
+    if (!list->elements)
+    {
+      __JSON_SetError(JSON_ELIST_FAILED_REALLOC);
+      return -1;
+    }
+  }
+
+  JSON_Type** pp;
+  JSON_Type*  p;
+
+  for (size_t i=index; i <= list->index; ++i)
+  {
+    pp    = &list->elements[i];
+    p     = *pp;
+    *pp   = value;
+    value = p;
+  }
+
+  ++list->index;
+
+  return 0;
+}
+/*============================================================================*/
+JSON_Type* JSON_PopList(JSON_List* list)
+{
+  if (list->index != 0)
+    return list->elements[list->index--];
+
+  return NULL;
+}
+/*============================================================================*/
+JSON_Type* JSON_TopList(JSON_List* list)
+{
+  return list->elements[list->index];
+}
+/*============================================================================*/
+JSON_Type* JSON_AtList(JSON_List* list, size_t index)
+{
+  if (index < list->index)
+    return list->elements[index];
+
+  return NULL;
+}
+/*============================================================================*/
