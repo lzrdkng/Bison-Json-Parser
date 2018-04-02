@@ -26,52 +26,45 @@
 
 ** Usage
 #+BEGIN_SRC c
-  #include <stdio.h>
+#include <JSON/json.h>   // Main json structure
+#include <JSON/parser.h> // Bison parser
+#include <JSON/io.h>     // io manipulaation
 
-  #include <JSON/json.h>   // Contain JSON data structure
-  #include <JSON/print.h>  // Recursive printing of JSON data
-  #include <JSON/parser.h> // Bison parser
+#define DICT_SIZE 64
+#define LIST_SIZE 128
 
-  int main(int argc, char* argv[])
-  {
-    if (argc < 3)
-      return 1;
+size_t hashType(const char* key);
 
-    FILE* in = fopen(argv[1], "r");
+int main(int argc, char* argv[])
+{
+  JSON_Type* type = NULL;
 
-    if (!in)
-      return 2;
-      
-    FILE* out = fopen(argv[2], "w");
-    
-    if (!out)
-    {
-      fclose(in);
-      return 3;
-    }
+  FILE* in = fopen(argv[1], "r");
 
-    JSON_Dict* dict = NULL;
+  if (in)
+    JSON_parse(&type, in, &hashType, DICT_SIZE, LIST_SIZE); // 
 
-    if (JSON_parse(&dict, in) != 0)
-      return 4;
-     
-    fclose(in);
+  fclose(in);
 
-    if (!dict)
-      return 5;
-      
-    JSON_PrintDict(dict, stdout);
-    
-    JSON_Type* type = JSON_MallocType(NULL, JSON_DICT);
-    
-    type->dict = dict; // Now type wrap dict
-    
-    JSON_PrintType(dict, out); // Same as before but with differents function/fd
-    
-    fclose(out);
-    
-    JSON_FreeType(type); // JSON_FreeDict would work. But type won't be able to be free because of dangling pointer.
+  if (!type)
+    return 1;
 
-    return 0;
-  }
+  // Do stuff with type here
+
+  JSON_FreeType(type);
+
+  fclose(out);
+
+  return 0;
+}
+
+size_t hashType(const char* key)
+{
+  size_t hash = 0;
+
+  while (*key)
+    hash += (size_t)(*(key++));
+
+  return hash;
+}
 #+END_SRC
