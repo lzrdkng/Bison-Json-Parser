@@ -29,26 +29,48 @@
   #include <stdio.h>
 
   #include <JSON/json.h>   // Contain JSON data structure
+  #include <JSON/print.h>  // Recursive printing of JSON data
   #include <JSON/parser.h> // Bison parser
 
   int main(int argc, char* argv[])
   {
-    if (argc == 1)
+    if (argc < 3)
       return 1;
 
-    FILE* fd = fopen(argv[1], "r");
+    FILE* in = fopen(argv[1], "r");
 
-    if (!fd)
+    if (!in)
       return 2;
+      
+    FILE* out = fopen(argv[2], "w");
+    
+    if (!out)
+    {
+      fclose(in);
+      return 3;
+    }
 
     JSON_Dict* dict = NULL;
 
-    if (yyparse(&dict, fd) != 0)
-      return 3;
+    if (JSON_parse(&dict, in) != 0)
+      return 4;
+     
+    fclose(in);
 
-    // Do stuff with dict here
-
-    JSON_FreeDict(dict);
+    if (!dict)
+      return 5;
+      
+    JSON_PrintDict(dict, stdout);
+    
+    JSON_Type* type = JSON_MallocType(NULL, JSON_DICT);
+    
+    type->dict = dict; // Now type wrap dict
+    
+    JSON_PrintType(dict, out); // Same as before but with differents function/fd
+    
+    fclose(out);
+    
+    JSON_FreeType(type); // JSON_FreeDict would work. But type won't be able to be free because of dangling pointer.
 
     return 0;
   }
