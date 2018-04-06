@@ -22,7 +22,7 @@ INC         := -I$(INCDIR)
 INCDEP      := -I$(INCDIR)
 
 # Valgrind
-VOPTIONS := -v --track-origins=yes
+VOPTIONS := -v --track-origins=yes --leak-check=full --show-leak-kinds=all
 
 #---------------------------------------------------------------------------------
 #DO NOT EDIT BELOW THIS LINE
@@ -34,7 +34,7 @@ OBJECTS     := $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(SOURCES:.$(SRCEXT)=.$(OBJE
 all: directories $(TARGET)
 
 grind: all
-	valgrind $(VOPTIONS) ./bin/tests test.json > valgrind.out 2>&1
+	valgrind $(VOPTIONS) ./bin/tests data/test.json > valgrind.out 2>&1
 
 #Remake
 remake: cleaner all

@@ -44,32 +44,56 @@ JSON_Type* JSON_MallocType(const char* label, JSON_Types type_)
 /*============================================================================*/
 void JSON_FreeType(JSON_Type* type)
 {
-  if (type)
+  JSON_List* stack = JSON_MallocList(1024);
+  JSON_PushList(stack, type);
+
+  JSON_Type*  p;
+  JSON_Type* stack_p;
+
+  while ((stack_p = JSON_PopList(stack)) != NULL)
   {
-    free(type->label);
-    JSON_FreeTypeValue(type);
-    free(type);
+    switch (stack_p->type)
+    {
+    case JSON_STRING:
+      free(stack_p->str);
+      break;
+    case JSON_DICT:
+
+      for (size_t i = 0; i < stack_p->dict->size; ++i)
+      {
+        p = stack_p->dict->buckets[i];
+
+        while (p)
+        {
+          JSON_PushList(stack, p);
+          p = p->next;
+        }
+      }
+
+      free(stack_p->dict->buckets);
+      free(stack_p->dict);
+
+      break;
+    case JSON_LIST:
+
+      for (size_t i = 0; i < stack_p->list->index; ++i)
+      {
+        JSON_PushList(stack, stack_p->list->elements[i]);
+      }
+
+      free(stack_p->list->elements);
+      free(stack_p->list);
+
+      break;
+    default:
+      break;
+    }
+
+    free(stack_p->label);
+    free(stack_p);
   }
-}
-/*============================================================================*/
-void JSON_FreeTypeValue(JSON_Type* type)
-{
-  switch (type->type)
-  {
-  case JSON_BOOLEAN:
-  case JSON_NUMBER:
-    break;
-  case JSON_STRING:
-    free(type->str);
-    break;
-  case JSON_DICT:
-    JSON_FreeDict(type->dict);
-    break;
-  case JSON_LIST:
-    JSON_FreeList(type->list);
-    break;
-  default:
-    break;
-  }
+
+  free(stack->elements);
+  free(stack);
 }
 /*============================================================================*/

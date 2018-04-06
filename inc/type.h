@@ -104,12 +104,4 @@ JSON_Type* JSON_MallocType(const char* label, JSON_Types type);
  */
 void JSON_FreeType(struct JSON_Type* type);
 /*============================================================================*/
-/**
- * @brief Procedure that free from memory the member 'value' of a
- * 'JSON_Type'.
- *
- * @param [in,out] type The 'JSON_Type' to free its 'value' member.
- */
-void JSON_FreeTypeValue(struct JSON_Type* type);
-/*============================================================================*/
 #endif // _JSON_TYPE_H

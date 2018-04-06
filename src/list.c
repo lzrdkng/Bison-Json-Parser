@@ -111,7 +111,7 @@ int JSON_InsertList(JSON_List* list, JSON_Type* value, size_t index)
 JSON_Type* JSON_PopList(JSON_List* list)
 {
   if (list->index != 0)
-    return list->elements[list->index--];
+    return list->elements[--list->index];
 
   return NULL;
 }

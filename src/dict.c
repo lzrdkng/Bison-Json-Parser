@@ -177,3 +177,4 @@ JSON_Type* JSON_MvDictValue(const char* key, JSON_Dict* src, JSON_Dict* dst)
 
   return JSON_SetDictValue(dst, ptr);
 }
+/*============================================================================*/

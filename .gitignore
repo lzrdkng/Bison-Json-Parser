@@ -63,3 +63,8 @@ GRTAGS
 GTAGS
 
 *.json
+*.out
+callgrind*
+
+parser.c
+parser.h
