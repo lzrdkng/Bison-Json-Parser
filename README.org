@@ -1,6 +1,6 @@
 * C-Json
   This is intend to be a library designed to provide total control
-  over [[https://www.json.org/][JSON]] data structure in
+  over [[https://www.json.org/][JSON]] data structure in *C*.
 
 ** Data Structure
    *C-Json* provides 3 data structures. *JSON_Type*, *JSON_Dict* and
@@ -18,7 +18,7 @@
    the documentaion for more info.
 
 * Dependency
-   You will need to [[https://www.gnu.org/software/bison/][GNU Bison]] have in order to be able to compile the
+   You will need to have [[https://www.gnu.org/software/bison/][GNU Bison]] in order to be able to compile the
    library. There's no need to have *lex* or *flex*, because the
    lexer, that the parser uses, is implemented by hand.
 
