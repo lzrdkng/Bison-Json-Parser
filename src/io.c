@@ -15,16 +15,40 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file io.c
+ *
+ * @brief Implementation of IO JSON services
+ */
 
+/*=============================================================================+
+ |                                  Includes                                   |
+ +=============================================================================*/
 #include "io.h"
 
+
+
+
+/*=============================================================================+
+ |                                   Macros                                    |
+ +=============================================================================*/
 #define PRINT_INDENT(fd) for (size_t __j__=0; __j__< 2*nest_level; ++__j__) fprintf(fd, " ")
 
-static size_t nest_level = 0;
-
-static const char* bools[3] = {"false", "null", "true"};
 
 
+
+/*=============================================================================+
+ |                              Global Variables                               |
+ +=============================================================================*/
+static size_t      nest_level = 0;
+static const char* bools[3]   = {"false", "null", "true"};
+
+
+
+
+/*=============================================================================+
+ |                          Function Implementations                           |
+ +=============================================================================*/
 void JSON_PrintType(const JSON_Type* type, FILE* fd)
 {
 
@@ -55,6 +79,9 @@ void JSON_PrintType(const JSON_Type* type, FILE* fd)
   }
 }
 
+
+
+
 void JSON_PrintList(const JSON_List* list, FILE* fd)
 {
   PRINT_INDENT(fd);
@@ -72,6 +99,9 @@ void JSON_PrintList(const JSON_List* list, FILE* fd)
   PRINT_INDENT(fd);
   fprintf(fd, "]");
 }
+
+
+
 
 void JSON_PrintDict(const JSON_Dict* dict, FILE* fd)
 {

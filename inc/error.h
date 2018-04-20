@@ -23,53 +23,77 @@
 
 #ifndef _JSON_ERROR_H
 #define _JSON_ERROR_H
-/*============================================================================*/
-/*============================ Type Declarations =============================*/
+
+/*=============================================================================+
+ |                            Enums and Structures                             |
+ +=============================================================================*/
 /**
  * @enum JSON_Errors
  *
- * @brief An enumeration of different error identifier.
+ * @brief An enumeration of different errors identifier.
  */
 typedef enum JSON_Errors
 {
-  JSON_EDICT_NHASH_FUNC,
-  JSON_ELIST_FAILED_REALLOC,
-  JSON_EHASH_NHASHABLE,
-  JSON_EDICT_SIZE_EQZ,
-  JSON_USER_BUFFER,
-  JSON_ETOTAL
+  JSON_EDICT_NHASH_FUNC,     /**< Dict has no hash function */
+  JSON_ELIST_FAILED_REALLOC, /**< List failed to realloc */
+  JSON_EHASH_NHASHABLE,      /**< Type is not hashable */
+  JSON_EDICT_SIZE_EQZ,       /**< Dict has hash table size of 0 */
+  JSON_ELIST_SIZE_EQZ,       /**< List has vector of size 0 */
+  JSON_ELIST_BAD_INDEX,      /**< List index is invalid */
+  JSON_EUSER,                /**< Reserved error for user */
+  JSON_ETOTAL                /**< Number of errors */
 } JSON_Errors;
-/*============================================================================*/
+
+
+
+
 /**
  * @struct JSON_Error
  *
  * @brief A structure that contain a JSON_Errors identifier and a
  * pointer to a message.
  *
- * @var JSON_Error::errno The error identifier number.
- *
- * @var JSON_Error::message The message associate with the error.
- *
  * @sa JSON_Errors
  */
 typedef struct JSON_Error
 {
-  JSON_Errors errno;
-  char*       message;
+  JSON_Errors errno;   /**< The error identifier number. */
+  const char* message; /**< The message associated with the error. */
 } JSON_Error;
-/*============================================================================*/
-/*=========================== Function Prototypes ============================*/
+
+
+
+
+
+/*=============================================================================+
+ |                             Function Prototypes                             |
+ +=============================================================================*/
 /**
  * @brief Retrieved the last error raised.
- * @return The current error messa.ge
+ * @return The current error message
  */
-const char* JSON_GetError();
-/*============================================================================*/
+const char* JSON_GetError(void);
+
+
+
+
 /**
- * @brief Reset the pointer returned by JSON_GetError to NULL.
+ * @brief Retrived the last error' number raised.
+ * @return The current error number.
  */
-void JSON_ClearError();
-/*============================================================================*/
+JSON_Errors JSON_GetErrorNo(void);
+
+
+
+
+/**
+ * @brief Reset the last error raised to @b NULL.
+ */
+void JSON_ClearError(void);
+
+
+
+
 /**
  * @brief Allow the user to set its own error message.
  *
@@ -80,22 +104,25 @@ void JSON_ClearError();
  * @return Return the number of character of the new message on
  * success, a negative number on failure.
  *
- * @note On success, the next call to JSON_GetError will return the
+ * @note On success, the next call to JSON_GetError() will return the
  * newly created error message. On failure, the next call to
- * JSON_GetError will return NULL. Multiple calls to this function
- * will overwrite previous calls.
+ * JSON_GetError() will return @b NULL. Multiple calls to this
+ * function will overwrite previous calls.
  *
- * @warning The user buffer error as a maximum length of MAX_USER_BUFFER
- * characters. If the formated message is longer than that, 'vsprintf'
- * will truncate it to fit the maxium size.
+ * @warning The user buffer error as a maximum length of
+ * MAX_USER_BUFFER characters. If the formated message is longer than
+ * that, it will be truncate to fit.
  */
 int JSON_SetError(const char* format, ...);
-/*============================================================================*/
+
+
+
+
 /**
  * @brief Set the error with the corresponding errorno.
  *
  * @param[in] errorno The positive error identifier. If strictly
- * negative, the next call to JSON_GetError will return NULL. The
+ * negative, the next call to JSON_GetError() will return @b NULL. The
  * function will fail if errorno is greater than JSON_ETOTAL.
  *
  * @return 0 on success, -1 on failure.
@@ -103,5 +130,4 @@ int JSON_SetError(const char* format, ...);
  * @note This function should not be use by the user. Use
  * JSON_SetError instead.*/
 int __JSON_SetError(int errorno);
-/*============================================================================*/
 #endif // _JSON_ERROR_H

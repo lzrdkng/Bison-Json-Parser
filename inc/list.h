@@ -27,75 +27,166 @@
 
 #ifndef _JSON_LIST_H
 #define _JSON_LIST_H
-/*================================= Includes =================================*/
+
+/*=============================================================================+
+ |                                  Includes                                   |
+ +=============================================================================*/
 #include <stdlib.h>
-/*=========================== Forward Declarations ===========================*/
+
+
+
+
+/*=============================================================================+
+ |                            Forward Declarations                             |
+ +=============================================================================*/
 struct JSON_Type;
-/*================================ Structures ================================*/
+
+
+
+
+/*=============================================================================+
+ |                                 Structures                                  |
+ +=============================================================================*/
 /**
  * @struct list
  *
- * @brief A structure act like an array of 'JSON_Type'.
+ * @brief A structure that act like a vector of JSON_Type.
  *
- * @var list::elements A list of type pointer.
+ * This structure has 3 members:
  *
- * @var list::size The size of the array.
+ * - A list of pointers of JSON_Type, called @b elements. It's the
+ *   actual vector.
  *
- * @var list::index The current index of the list.
+ * - A positive number, called @b size, that represent the current
+ *   size of the vector.
+ *
+ * - A positive number, called @b index, that represent the current
+ *   index in the vector. @e i.e, at what position the next item will
+ *   be inserted in.
+ *
+ * The size of the vector will grow in time. Whenever the index is
+ * equal to the size, the size is double to fit more items and realloc
+ * is called on the elements member. It's the user responsability to
+ * avoid size_t overflow.
  */
 typedef struct JSON_List
 {
-  struct JSON_Type** elements;
-  size_t      size;
-  size_t      index;
+  struct JSON_Type** elements; /**< A list of pointer of JSON_Type. */
+  size_t             size;     /**< The current size of the vector */
+  size_t             index;    /**< The current index of the vector */
 } JSON_List;
-/*=========================== Function Prototypes ============================*/
 
+
+
+
+/*=============================================================================+
+ |                             Function Prototypes                             |
+ +=============================================================================*/
 /**
- * @brief Allocate memory for a new 'struc list'.
+ * @brief Allocate memory for a JSON_List.
  *
  * @param [in] size The size of the list.
  *
- * @return The new allocated 'JSON_List' or NULL on failure.
+ * @return A pointer to the allocated JSON_List or @b NULL on
+ * failure; more info by calling JSON_GetError().
  */
 JSON_List* JSON_MallocList(size_t size);
-/*============================================================================*/
+
+
+
+
 /**
- * @brief Procedure taht free from memory a 'JSON_List'
+ * @brief Procedure that free from memory a JSON_List.
  *
- * @param [in,out] list The 'struct lsit' to free from memory.
+ * @param [in,out] list The JSON_List to free from memory.
  */
 void JSON_FreeList(JSON_List* list);
-/*============================================================================*/
-/*=========================== Function Prototypes ============================*/
+
+
+
+
 /**
- * @brief
+ * @brief Insert a value in a list at a certain index.
  *
- * */
-int JSON_InsertList(JSON_List* list, struct JSON_Type* value, size_t index);
-/*============================================================================*/
+ * @param [in,out] value The JSON_Type to insert.
+ *
+ * @param [in] index The index where to insert the value.
+ *
+ * @param [out] list The JSON_List to insert the value into.
+ *
+ * @return 0 on success, -1 on failure; more info by calling JSON_GetError().
+ */
+int JSON_InsertList(struct JSON_Type* value, size_t index, JSON_List* list);
+
+
+
+
 /**
- * @brief
+ * @brief Push a value in a list.
  *
- * */
-int JSON_PushList(JSON_List* list, struct JSON_Type* type);
-/*============================================================================*/
+ * @param [in,out] value The JSON_Type to push.
+ *
+ * @param [out] list The JSON_List to push the value into.
+ *
+ * @return 0 on success, -1 on failure; more info by calling JSON_GetError().
+ */
+int JSON_PushList(struct JSON_Type* value, JSON_List* list);
+
+
+
+
 /**
- * @brief
+ * @brief Return the last element in a list. Remove it also from the
+ * vector.
  *
- * */
+ * @param [in,out] list The list to take the element from.
+ *
+ * @return The last element in the list if any, @b NULL otherwise.
+ *
+ * @note The value in the vector is overwrite by @b NULL as a
+ * precaution.
+ */
 JSON_Type* JSON_PopList(JSON_List* list);
-/*============================================================================*/
+
+
+
+
 /**
- * @brief
+ * @brief Return the last element in a list.
  *
- * */
-JSON_Type* JSON_TopList(JSON_List* list);
-/*============================================================================*/
+ * @param [in] list The list to return the last element from.
+ *
+ * @return The last element in the list if any, @b NULL otherwise.
+ */
+const JSON_Type* JSON_TopList(const JSON_List* list);
+
+
+
+
 /**
- * @brief
+ * @brief Return an element at an index in a list.
  *
- * */
-JSON_Type* JSON_AtList(JSON_List* list, size_t index);
-/*============================================================================*/
+ * @param [in] list The list to return the element from.
+ *
+ * @param [in] index The index of the element wanted.
+ *
+ * @return The element at the index on success, @b NULL on failure;
+ * see JSON_GetError() for more info.
+ */
+const JSON_Type* JSON_AtList(const JSON_List* list, size_t index);
+
+
+
+
+/**
+ * @brief Resize the size of a list.
+ *
+ * @param [in] size The new size of the list.
+ *
+ * @param [out] list The JSON_List to resize.
+ *
+ * @return 0 on success, -1 on failure; see JSON_GetError() for more
+ * info.
+ */
+int JSON_ResizeList(size_t size, JSON_List* list);
 #endif // _JSON_LIST_H

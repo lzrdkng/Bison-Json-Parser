@@ -18,146 +18,201 @@
 /**
  * @file dict.h
  *
- * 'JSON_Dict' structure definition. It's basicaly a symbol table of
- * 'JSON_Type', that use hash function and bucket. It's possible to
- * assign different hash function to different instance by passing a
- * pointer to the hash function in the 'JSON_MallocDict' function.
+ * @brief Interfaces to JSON_Dict structure.
  */
 
 #ifndef _JSON_DICT_H
 #define _JSON_DICT_H
-/*================================= Includes =================================*/
+
+/*=============================================================================+
+ |                                  Includes                                   |
+ +=============================================================================*/
 #include <stdlib.h>
-/*=========================== Forward Declarations ===========================*/
+
+
+
+
+/*=============================================================================+
+ |                                  Typedefs                                   |
+ +=============================================================================*/
 typedef struct JSON_Type JSON_Type;
 typedef struct JSON_List JSON_List;
-/*================================= Typedefs =================================*/
-typedef size_t (*JSON_HashFunc) (const char* key);
-/*================================ Structures ================================*/
+
+/** This typedef might change in the futur. It's use by JSON_Dict as
+ *  the type to hash for its hash function. */
+typedef const char* JSON_HashKey;
+
+/** Prototypes of hash function used by a JSON_Dict. */
+typedef size_t (*JSON_HashFunc) (JSON_HashKey);
+
+
+
+
+
+/*=============================================================================+
+ |                                 Structures                                  |
+ +=============================================================================*/
 /**
  * @struct JSON_Dict
  *
- * @brief A structure that act like a hash table. A dict consists of 4
- * members. A pointer to a procedure, called 'freeBucket' that will
- * free the individual bucket from memory. A pointer to a hash
- * function, called 'hash' that will be called when you try to access
- * an element from the dict. A positive number, called 'size', that
- * represent the number of bucket in the dict. And finally, 'buckets'
- * list of  pointers to individual bucket.
+ * @brief A structure that hold a hash table of JSON_Type.
  *
- * @var JSON_Dict::freeBucket A pointer to the procedure that will free
- * invidiual bucket.
+ * The structure has 3 members:
+ * - A pointer to a JSON_HashFunc function, called @b hash that
+ * will be called when you try to access an element from the dict.
  *
- * @var JSON_Dict::hash A pointer to the function that will produce the
- * hashed values for the dict.
+ * - A positive number, called @b size, that represent the number of
+ * buckets in the dict.
  *
- * @var JSON_Dict::size The number of bucket in the dict.
+ * - A pointer to pointers of JSON_Type, @b buckets is a list of
+ * JSON_Type. Every entries in the list act as a linked list.
+ *
+ * A JSON_Dict has a fixed size of buckets. Every bucket entry is a
+ * the head of a linked list of JSON_Type. It uses its hash function
+ * in order to retrieve the associated bucket. This is why it's
+ * important to NOT modify the hash function after the initialization
+ * of the structure.
+ *
+ *
  */
 typedef struct JSON_Dict
 {
-  JSON_HashFunc    hash;
-  size_t      size;
-  struct JSON_Type** buckets;
-} JSON_Dict;
-/*============================================================================*/
-/*=========================== Function Prototypes ============================*/
+  JSON_HashFunc hash; /**< A pointer to a hash function that will be
+                       * used by the hash table. This member should
+                       * never be modify directly. Only access it in
+                       * order to call it as a regular function.*/
 
-/*============================================================================*/
+  size_t size; /**< The number of buckets in the hash table.*/
+
+  struct JSON_Type** buckets; /**< The actual hash table implemented
+                               * as a fixed list. Every entries in the
+                               * list act as a linked list of
+                               * JSON_Type.*/
+} JSON_Dict;
+
+
+
+
+/*=============================================================================+
+ |                             Function Prototypes                             |
+ +=============================================================================*/
 /**
- * @brief Allocate memory for a 'JSON_Dict'.
+ * @brief Allocate memory for a JSON_Dict.
  *
  * @param [in] size The size of the dict.
- * @param [in] hash The hash function to use.
+ * @param [in] hash The hash function to use by the hash table.
  *
- * @return A pointer to the allocated 'JSON_Dict' or NULL on failure.
+ * @return A pointer to the allocated JSON_Dict or @b NULL on
+ * failure; more info by calling JSON_GetError().
  */
 JSON_Dict* JSON_MallocDict(size_t size, JSON_HashFunc hash);
-/*============================================================================*/
 
-/*============================================================================*/
+
+
+
 /**
- * @brief Procedure that free from memory a 'JSON_Dict'.
+ * @brief Procedure that free from memory a JSON_Dict.
  *
  * @param [in,out] dict The dict to free from memory.
  *
- * @note This procedure will call dict's member 'freeBucket' it it's
- * not NULL.
+ * @note All entries in the hash table will be free from memory too.
  */
 void JSON_FreeDict(JSON_Dict* dict);
-/*============================================================================*/
 
-/*============================================================================*/
+
+
+
 /**
  * @brief Get the bucket of a dict associated with a key.
  *
- * @param [in] key A pointer to the key to hash by the 'JSON_Dict'
- * 'hash' member.
+ * @param [in] key The key to hash.
  *
- * @param [in] dict The 'JSON_Dict' to get the bucket from.
+ * @param [in] dict The JSON_Dict to get the bucket from.
  *
- * @return A pointer to the JSON_Type on success, NULL on failure.
+ * @return The corresponding bucket, if any. @b NULL otherwise.
  */
-const JSON_Type* JSON_GetDictValue(const char* key,
+const JSON_Type* JSON_GetDictValue(const JSON_HashKey key,
                                    const JSON_Dict* dict);
-/*============================================================================*/
 
-/*============================================================================*/
+
+
 /**
- * @brief Set a type in the symbol table of a 'JSON_Dict'.
+ * @brief Set a value in the hash table of a JSON_Dict.
  *
- * @param [in,out] dict The 'JSON_Dict' to modify.
+ * @param [in,out] dict The JSON_Dict to add the value to.
  *
- * @param [in] ptr A pointer to the type to put in the dict.
+ * @param [in] value A pointer to the value to add.
  *
  * @return A pointer to the previous value that has been overwrite, if
- * any. NULL otherwise.
+ * any. @b NULL otherwise.
+ *
+ * @warning It's the responsability of the user to free from memory,
+ * or at least catch the returned pointer, in order to avoid memory
+ * leak.
+ *
+ * @warning It's the user responsability to ensure that the value
+ * passed is not already used by another container. @e e.g JSON_List or
+ * JSON_Dict. Chances are this will result in @b SEGFAULT.
  */
 JSON_Type* JSON_SetDictValue(JSON_Dict* dict, JSON_Type* value);
-/*============================================================================*/
 
-/*============================================================================*/
+
+
+
 /**
  * @brief Remove and free from memory a JSON_Type in a JSON_Dict.
  *
- * @param [in] key The key associated with the JSON_Type to find.
+ * @param [in] key The key to hash.
  *
  * @param [in,out] dict The JSON_Dict to search in for.
  *
- * @return 0 if a value has been deleted. -1 if not.
- *
- * */
-int JSON_DelDictValue(const char* key, JSON_Dict* dict);
-/*============================================================================*/
-
-/*============================================================================*/
-/**
- * @brief Remove a JSON_Type in a JSON_Dict without removing it from memory.
- *
- * @param [in] key The key associated with the JSON_Type to find.
- *
- * @param [in,out] dict The JSON_Dict to search in for.
- *
- * @rturn A Pointer to the removed JSON_Type on success, NULL if no
- * value has been removed.
+ * @return 0 if a value has been freed. -1 if not.
  */
-JSON_Type* JSON_RmDictValue(const char* key, JSON_Dict* dict);
-/*============================================================================*/
+int JSON_FreeDictValue(const JSON_HashKey key, JSON_Dict* dict);
 
-/*============================================================================*/
+
+
+
+/**
+ * @brief Remove a JSON_Type in a JSON_Dict without freeing it from memory.
+ *
+ * @param [in] key The key to hash.
+ *
+ * @param [in,out] dict The JSON_Dict to search in for.
+ *
+ * @return A Pointer to the removed JSON_Type on success, @b NULL if no
+ * value has been removed.
+ *
+ * @warning It's the responsability of the user to free from memory,
+ * or at least catch the returned pointer, in order to avoid memory
+ * leak.
+ */
+JSON_Type* JSON_DelDictValue(const JSON_HashKey key, JSON_Dict* dict);
+
+
+
+
 /**
  * @brief Move a JSON_Type in a source JSON_Dict to a destination JSON_Dict.
  *
- * @param [in] key The key associated with the JSON_Type to find.
+ * @param [in] key The key to hash in src.
  *
- * @param [in,out] src The source JSON_Dict to take ownership from.
+ * @param [in,out] src The source JSON_Dict to search in for.
  *
- * @param [out] dst The destination JSON_Dict to give ownership to.
+ * @param [out] dst The destination JSON_Dict to transfert to.
  *
- * @return A pointer to the previous value in 'dst' that has been
- * overwrite, if any. NULL otherwise.
+ * @param [out] x The success status, or @b NULL. On return, x will be
+ * 0 if a transfert has been made, or -1 if no entry was found in src.
  *
- * @note There's no way to verify if a movement has been made.
+ * @return A pointer to the previous value in dst that has been
+ * overwrite, if any. @b NULL otherwise.
+ *
+ * @warning It's the responsability of the user to free from memory,
+ * or at least catch the returned pointer, in order to avoid memory
+ * leak.
  */
-JSON_Type* JSON_MvDictValue(const char* key, JSON_Dict* src, JSON_Dict* dst);
-/*============================================================================*/
+JSON_Type* JSON_MvDictValue(const JSON_HashKey key,
+                            JSON_Dict* src,
+                            JSON_Dict* dst,
+                            int* x);
 #endif // _JSON_DICT_H

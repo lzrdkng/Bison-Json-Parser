@@ -18,61 +18,103 @@
 /**
  * @file lexer.c
  *
- * Json lexer.
+ * @brief JSON lexer.
  */
-/*================================= Includes =================================*/
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
+
+/*=============================================================================+
+ |                                  Includes                                   |
+ +=============================================================================*/
 #include <ctype.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include "commons.h"
 #include "parser.h"
-/*================================== Macros ==================================*/
+
+
+
+
+/*=============================================================================+
+ |                                   Macros                                    |
+ +=============================================================================*/
 #define SKIP_WS(c, fd) while((c = fgetc(fd)) == ' ' || c == '\t')
-/*================================ Constants =================================*/
-ssize_t getword(char** buf, FILE* fd)
+
+
+
+/*=============================================================================+
+ |                          Function Implementations                           |
+ +=============================================================================*/
+/**
+ * @brief Read a word from a stream.
+ *
+ * @param [out] buf The buffer to fill.
+ *
+ * @param [in] fd The stream to read from
+ *
+ * @return The number of characters readed from stream.
+ */
+static ssize_t get_word(char** buf, FILE* fd)
 {
-  size_t len = 5;
-
-  ssize_t n = 0;
-
-  *buf = calloc(len + 1, sizeof(char));
-
-  if (!*buf)
-    return 0;
-
+  /*  Initial size of buffer is 255 */
+  size_t len = 0xFF;
+  ssize_t n  = 0;
   char c;
 
+  /*  Buffer allocaiton  */
+  *buf = calloc(len + 1, sizeof(char));
+
+  if (JSON_unlikely(*buf == NULL))
+    return 0;
+
+  /* While readed char is alnum, place it in the buffer  */
   while (isalnum(c = fgetc(fd)))
   {
+    /*  Resize the buffer if needed  */
     if (n == len)
     {
       len *= 2;
       *buf = realloc(*buf, len + 1);
 
-      if (!*buf)
+      if (JSON_unlikely(*buf == NULL))
         return 0;
-
     }
 
     (*buf)[n++] = c;
   }
 
+  /*  End of string  */
   (*buf)[n] = '\0';
 
+  /*  Push back last readed char  */
   ungetc(c, fd);
 
-  return n;
+  return n - 1;
 }
 
-int JSON_lex(JSON_STYPE* valP, JSON_LTYPE* locP, FILE* fd)
+
+
+
+/**
+ * @brief JSON Lexer.
+ *
+ * @param [out] val_p Pointer to the value used by JSON_parser
+ *
+ * @param [out] loc_p Pointer to the location used by JSON_Parser
+ *
+ * @param [in] fd File descriptor to read from
+ *
+ * @return Token type.
+ */
+int JSON_lex(JSON_STYPE* val_p, JSON_LTYPE* loc_p, FILE* fd)
 {
   int c;
 
   SKIP_WS(c, fd)
-    ++(locP->last_column);
+    ++(loc_p->last_column);
 
-  locP->first_line = locP->last_line;
-  locP->first_column = locP->last_column;
+  loc_p->first_line = loc_p->last_line;
+  loc_p->first_column = loc_p->last_column;
 
   if (c == EOF)
   {
@@ -84,11 +126,11 @@ int JSON_lex(JSON_STYPE* valP, JSON_LTYPE* locP, FILE* fd)
 
   if (c == '\n')
   {
-    ++(locP->last_line);
-    locP->last_column = 0;
+    ++(loc_p->last_line);
+    loc_p->last_column = 0;
 
     SKIP_WS(c, fd)
-      ++(locP->last_column);
+      ++(loc_p->last_column);
   }
 
   if (c == '"')
@@ -100,8 +142,8 @@ int JSON_lex(JSON_STYPE* valP, JSON_LTYPE* locP, FILE* fd)
 
     buf[size - 1] = '\0';
 
-    valP->str = strdup(buf);
-    locP->last_column += size;
+    val_p->str = strdup(buf);
+    loc_p->last_column += size;
 
     free(buf);
 
@@ -116,13 +158,13 @@ int JSON_lex(JSON_STYPE* valP, JSON_LTYPE* locP, FILE* fd)
 
     ungetc(c, fd);
 
-    --(locP->last_column);
+    --(loc_p->last_column);
 
     fscanf(fd, "%lf%n", &x, &n);
 
-    valP->num = x;
+    val_p->num = x;
 
-    locP->last_column += n;
+    loc_p->last_column += n;
 
     return NUM;
   }
@@ -131,37 +173,37 @@ int JSON_lex(JSON_STYPE* valP, JSON_LTYPE* locP, FILE* fd)
   {
     ungetc(c, fd);
 
-    --(locP->last_column);
+    --(loc_p->last_column);
 
     char* buf = NULL;
 
-    ssize_t n = getword(&buf, fd);
+    ssize_t n = get_word(&buf, fd);
 
-    if (buf)
+    if (n)
     {
       if (strcmp(buf, "true") == 0)
       {
-        valP->bool = 1;
-        locP->last_column += strlen(buf);
+        val_p->bool = 1;
+        loc_p->last_column += n;
         free(buf);
         return BOOL;
       }
       else if (strcmp(buf, "false") == 0)
       {
-        valP->bool = -1;
-        locP->last_column += strlen(buf);
+        val_p->bool = -1;
+        loc_p->last_column += n;
         free(buf);
         return BOOL;
       }
       else if (strcmp(buf, "null") == 0)
       {
-        valP->bool = 0;
-        locP->last_column += strlen(buf);
+        val_p->bool = 0;
+        loc_p->last_column += n;
         free(buf);
         return BOOL;
       }
 
-      for (int i=n; i > 0; --i)
+      for (int i=n-1; i >= 0; --i)
       {
         ungetc(buf[i], fd);
       }

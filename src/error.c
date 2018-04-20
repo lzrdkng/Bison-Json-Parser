@@ -15,40 +15,80 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/*================================= Includes =================================*/
+/*=============================================================================+
+ |                                  Includes                                   |
+ +=============================================================================*/
 #include <stdarg.h>
 #include <stdlib.h>
 #include <stdio.h>
+
+#include "commons.h"
 #include "error.h"
-/*============================================================================*/
-/*================================== Macros ==================================*/
-#define MAX_USER_BUFFER 256
-/*============================================================================*/
-/*============================= Global Variables =============================*/
-static char user_buffer[MAX_USER_BUFFER];
 
-static const char* error_g = NULL;
 
-static const JSON_Error errors_g[JSON_ETOTAL+1] =
+
+
+/*=============================================================================+
+ |                                   Macros                                    |
+ +=============================================================================*/
+#define JSON_MAX_USER_BUFF 0xFF
+
+
+
+
+/*=============================================================================+
+ |                              Global Variables                               |
+ +=============================================================================*/
+static char user_buffer[JSON_MAX_USER_BUFF];
+
+static const JSON_Error* current = NULL;
+
+static const JSON_Error errors[JSON_ETOTAL+1] =
 {
   {JSON_EDICT_NHASH_FUNC,     "JSON_Dict as no hash function associated with it.\n"},
   {JSON_ELIST_FAILED_REALLOC, "JSON_List failed to realloc its size.\n"},
   {JSON_EHASH_NHASHABLE,      "Type is not hashable.\n"},
-  {JSON_EDICT_SIZE_EQZ,       "Size of dict hash table equal to 0.\n"},
-  {JSON_USER_BUFFER,          user_buffer},
-  {JSON_ETOTAL, NULL}
+  {JSON_EDICT_SIZE_EQZ,       "Size of dict hash table is equal to 0.\n"},
+  {JSON_ELIST_SIZE_EQZ,       "Size of list vector is equal to 0.\n"},
+  {JSON_ELIST_BAD_INDEX,      "Index of list is too large.\n"},
+  {JSON_EUSER,                user_buffer},
+  {JSON_ETOTAL,               NULL}
 };
-/*============================================================================*/
-/*========================= Function Implementations =========================*/
-void JSON_ClearError()
+
+
+
+/*=============================================================================+
+ |                          Function Implementations                           |
+ +=============================================================================*/
+void JSON_ClearError(void)
 {
-  error_g = NULL;
+  current = NULL;
 }
 
-const char* JSON_GetError()
+
+
+
+const char* JSON_GetError(void)
 {
-  return error_g;
+  if (JSON_likely(current != NULL))
+    return current->message;
+
+  return NULL;
 }
+
+
+
+
+JSON_Errors JSON_GetErrorNo(void)
+{
+  if (JSON_likely(current != NULL))
+    return current->errno;
+
+  return -1;
+}
+
+
+
 
 int JSON_SetError(const char* format, ...)
 {
@@ -60,7 +100,7 @@ int JSON_SetError(const char* format, ...)
   code = vsprintf(user_buffer, format, args);
 
   if (code > 0)
-    error_g = errors_g[JSON_USER_BUFFER].message;
+    current = &errors[JSON_EUSER];
   else
     JSON_ClearError();
 
@@ -68,6 +108,9 @@ int JSON_SetError(const char* format, ...)
 
   return code;
 }
+
+
+
 
 int __JSON_SetError(int errorno)
 {
@@ -78,9 +121,9 @@ int __JSON_SetError(int errorno)
   }
 
   if (errorno < 0)
-    error_g = NULL;
+    current = NULL;
   else
-    error_g = errors_g[errorno].message;
+    current = &errors[errorno];
 
   return 0;
 }

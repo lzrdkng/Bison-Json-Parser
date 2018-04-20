@@ -21,10 +21,20 @@
  * @brief JSON_Dict structure implementations.
  */
 
-/*================================= Includes =================================*/
+/*=============================================================================+
+ |                                  Includes                                   |
+ +=============================================================================*/
 #include <string.h>
+
+#include "error.h"
 #include "json.h"
-/*========================= Function Implementations =========================*/
+
+
+
+
+/*=============================================================================+
+ |                          Function Implementations                           |
+ +=============================================================================*/
 JSON_Dict* JSON_MallocDict(size_t size, JSON_HashFunc hash)
 {
   if (size == 0)
@@ -51,7 +61,10 @@ JSON_Dict* JSON_MallocDict(size_t size, JSON_HashFunc hash)
 
   return dict;
 }
-/*============================================================================*/
+
+
+
+
 void JSON_FreeDict(JSON_Dict* dict)
 {
   if (dict)
@@ -77,7 +90,10 @@ void JSON_FreeDict(JSON_Dict* dict)
     free(dict);
   }
 }
-/*============================================================================*/
+
+
+
+
 const JSON_Type* JSON_GetDictValue(const char* key,
                                    const JSON_Dict* dict)
 {
@@ -94,7 +110,10 @@ const JSON_Type* JSON_GetDictValue(const char* key,
 
   return ptr;;
 }
-/*============================================================================*/
+
+
+
+
 JSON_Type* JSON_SetDictValue(JSON_Dict* dict, JSON_Type* value)
 {
   size_t i = dict->hash(value->label) % dict->size;
@@ -120,8 +139,11 @@ JSON_Type* JSON_SetDictValue(JSON_Dict* dict, JSON_Type* value)
 
   return head;
 }
-/*============================================================================*/
-int JSON_DelDictValue(const char* key, JSON_Dict* dict)
+
+
+
+
+int JSON_FreeDictValue(JSON_HashKey key, JSON_Dict* dict)
 {
   size_t i = dict->hash(key) % dict->size;
 
@@ -144,8 +166,11 @@ int JSON_DelDictValue(const char* key, JSON_Dict* dict)
 
   return -1;
 }
-/*============================================================================*/
-JSON_Type* JSON_RmDictValue(const char* key, JSON_Dict* dict)
+
+
+
+
+JSON_Type* JSON_DelDictValue(JSON_HashKey key, JSON_Dict* dict)
 {
   size_t i = dict->hash(key) % dict->size;
 
@@ -167,14 +192,24 @@ JSON_Type* JSON_RmDictValue(const char* key, JSON_Dict* dict)
 
   return head;
 }
-/*============================================================================*/
-JSON_Type* JSON_MvDictValue(const char* key, JSON_Dict* src, JSON_Dict* dst)
+
+
+
+
+JSON_Type* JSON_MvDictValue(const JSON_HashKey key,
+                            JSON_Dict* src,
+                            JSON_Dict* dst,
+                            int* x)
 {
-  JSON_Type* ptr = JSON_RmDictValue(key, src);
+  JSON_Type* ptr = JSON_DelDictValue(key, src);
 
   if (ptr == NULL)
+  {
+    *x = -1;
     return NULL;
+  }
+
+  *x = 0;
 
   return JSON_SetDictValue(dst, ptr);
 }
-/*============================================================================*/

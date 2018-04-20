@@ -21,10 +21,20 @@
  * @brief JSON_List structure implementations.
  */
 
-/*================================= Includes =================================*/
+/*=============================================================================+
+ |                                  Includes                                   |
+ +=============================================================================*/
 #include <string.h>
+
+#include "error.h"
 #include "json.h"
-/*========================= Function Implementations =========================*/
+
+
+
+
+/*=============================================================================+
+ |                             Function Prototypes                             |
+ +=============================================================================*/
 JSON_Type* JSON_MallocType(const char* label, JSON_Types type_)
 {
   JSON_Type* type = calloc(1, sizeof(JSON_Type));
@@ -41,11 +51,14 @@ JSON_Type* JSON_MallocType(const char* label, JSON_Types type_)
 
   return type;
 }
-/*============================================================================*/
+
+
+
+
 void JSON_FreeType(JSON_Type* type)
 {
   JSON_List* stack = JSON_MallocList(1024);
-  JSON_PushList(stack, type);
+  JSON_PushList(type, stack);
 
   JSON_Type*  p;
   JSON_Type* stack_p;
@@ -65,7 +78,7 @@ void JSON_FreeType(JSON_Type* type)
 
         while (p)
         {
-          JSON_PushList(stack, p);
+          JSON_PushList(p, stack);
           p = p->next;
         }
       }
@@ -78,7 +91,7 @@ void JSON_FreeType(JSON_Type* type)
 
       for (size_t i = 0; i < stack_p->list->index; ++i)
       {
-        JSON_PushList(stack, stack_p->list->elements[i]);
+        JSON_PushList(stack_p->list->elements[i], stack);
       }
 
       free(stack_p->list->elements);
@@ -96,4 +109,3 @@ void JSON_FreeType(JSON_Type* type)
   free(stack->elements);
   free(stack);
 }
-/*============================================================================*/

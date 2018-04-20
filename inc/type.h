@@ -19,89 +19,120 @@
 /**
  * @file type.h
  *
- * 'JSON_Type' structure definition. An instance of this type
- * can have a label attached to it, if it's in the symbol table of a
- * 'JSON_Dict'. It will also have a pointer to the next entry in this
- * symbol table. This structure is the most important one, because it
- * as an annonymous union that can contain all the possible types in
- * JSON, which is 'int, char*, double, JSON_Dict, JSON_List'. There's
- * also an integer in the structure to determine what type is hold in
- * the structure.
-*/
+ * @brief Interfaces to JSON_Type structure.
+ */
 
 #ifndef _JSON_TYPE_H
 #define _JSON_TYPE_H
-/*================================= Includes =================================*/
+
+/*=============================================================================+
+ |                                  Includes                                   |
+ +=============================================================================*/
 #include <stdlib.h>
-/*=========================== Forward Declarations ===========================*/
+
+
+
+
+/*=============================================================================+
+ |                            Forward Declarations                             |
+ +=============================================================================*/
 struct JSON_Dict;
 struct JSON_List;
-/*================================== Enums ===================================*/
+
+
+
+
+/*=============================================================================+
+ |                                    Enums                                    |
+ +=============================================================================*/
+/**
+ * @enum JSON_Types
+ *
+ * @brief Enumerate all possible different types in JSON
+ */
 typedef enum JSON_Types
 {
-  JSON_BOOLEAN,
-  JSON_NUMBER,
-  JSON_STRING,
-  JSON_DICT,
-  JSON_LIST,
-  NONE
+  JSON_BOOLEAN, /**< int between -1, 0 or 1*/
+  JSON_NUMBER,  /**< double */
+  JSON_STRING,  /**< char* */
+  JSON_DICT,    /**< JSON_Dict */
+  JSON_LIST,    /**< JSON_List*/
+  JSON_NONE
 } JSON_Types;
-/*================================ Structures ================================*/
+
+
+
+
+/*=============================================================================+
+ |                                 Structures                                  |
+ +=============================================================================*/
 /**
- * @struct
+ * @struct JSON_Type
  *
- * @brief A structure representing the basic type.
+ * @brief A structure representing the basic type in JSON.
  *
- * @var type::label The label representing the instance in its parent,
- * if any, collection
+ * The structure has 4 members.
  *
- * @var type::type A positive integer representing which type is being
- * use.
+ * - A string, called @b label, that represent the key passed to hash
+ *   function, if the JSON_Type is in a JSON_Dict.
  *
- * @var type::value The actual value of the type.
+ * - A JSON_Types, called @b type, that represent which type is stored
+ *   in the anonymous union.
  *
- * @var type::next The next type in the collection of its parent.
+ * - A anonymous union, that can be one of the diffrent types defined
+ *   by JSON_Types, excepted JSON_NONE.
  *
- * @note A type with labe set to NULL is said to be the root of the
- * overall sub-collections. In this case, the member 'next' should bet
- * set to NULL also.
+ * - A pointer to a JSON_Type, called @b next, that represented the
+ *   the next JSON_Type, if any, in the linked list, if the instance
+ *   is in a JSON_Dict.
  */
 typedef struct JSON_Type
 {
-  char* label;
+  char* label; /**< The label representing the instance, if in a JSON_Dict. */
 
-  JSON_Types type;
-
+  JSON_Types type; /**< Integer representing which type is hold in the
+                    * annonymous union*/
   union
   {
-    int        bool;
-    double     num;
-    char*      str;
+    int bool;
+    double num;
+    char* str;
     struct JSON_Dict* dict;
     struct JSON_List* list;
-  };
+  }; /**< Annonymous union */
 
-  struct JSON_Type* next;
-
+  struct JSON_Type* next; /**< The next JSON_Type in the linked list,
+                           * if in a JSON_Dict. */
 } JSON_Type;
-/*=========================== Function Prototypes ============================*/
 
+
+
+
+/*=============================================================================+
+ |                             Function Prototypes                             |
+ +=============================================================================*/
 /**
- * @brief Allocate memory for a new 'JSON_Type'.
+ * @brief Allocate memory for a JSON_Type.
  *
- * @param [in] label The label of the new type.
+ * @param [in] label The label of the JSON_Type.
  *
- * @param [in] type The type to use.
+ * @param [in] type The JSON_Types to use.
  *
- * @return A pointer to the new type, or NULL on failure.
+ * @return A pointer to the new type, or NULL on failure; see
+ * JSON_GetError() for mor info.
  */
 JSON_Type* JSON_MallocType(const char* label, JSON_Types type);
-/*============================================================================*/
+
+
+
+
 /**
- * @brief Procedure that free from memory a 'JSON_Type'.
+ * @brief Procedure that free from memory a JSON_Type.
  *
- * @param [in,out] type The 'JSON_Type' to free from memory.
+ * @param [in,out] type The JSON_Type to free from memory.
+ *
+ * @note This will also free all other JSON_Type that are hold by the
+ * instance.
  */
 void JSON_FreeType(struct JSON_Type* type);
-/*============================================================================*/
 #endif // _JSON_TYPE_H

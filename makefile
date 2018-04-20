@@ -23,10 +23,10 @@ OBJEXT      := o
 SRCEXT      := c
 
 #Flags, Libraries and Includes
-CFLAGS      := -fPIC -Wall -Werror -pg -g -O0 -no-pie
+CFLAGS      := -fPIC -Wall -Werror -ggdb -O0
 INC         := -I$(INCDIR)
 INCDEP      := -I$(INCDIR)
-LIB         := -pg
+LIB         :=
 
 # Bison source, header and yac files
 BCC        := $(SRCDIR)/parser.c

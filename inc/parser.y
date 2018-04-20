@@ -20,42 +20,62 @@
  *
  * Bison json parser.
  */
-/*============================================================================*/
-/*================================= Prologue =================================*/
+
 %{
-/*============================================================================*/
-/*================================= Includes =================================*/
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include "json.h"
-#include "parser.h"
-/*============================================================================*/
-/*================================ Prototypes ================================*/
-  int JSON_lex(JSON_STYPE* valP,
-                     JSON_LTYPE* locP,
-                     FILE* fd);
+/*=============================================================================+
+ |                                  Includes                                   |
+ +=============================================================================*/
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <string.h>
 
-  int JSON_parse(struct JSON_Type**,
-                 FILE* fd,
-                 JSON_Hash hashFunc,
-                 size_t dictSize,
-                 size_t listSize);
+ #include "parser.h"
 
-  void JSON_error(JSON_LTYPE* locP,
-                  struct JSON_Type**,
-                  FILE* fd,
-                  JSON_Hash hashFunc,
-                  size_t dictSize,
-                  size_t listSize,
-                  const char* error);
+
+
+
+/*=============================================================================+
+ |                                 Prototypes                                  |
+ +=============================================================================*/
+  int JSON_lex(JSON_STYPE* val_p,
+               JSON_LTYPE* loc_p,
+               FILE* fd);
+
+
+
+
+  int JSON_parse(struct JSON_Type** obj_pp,
+                 FILE*              fd,
+                 JSON_Hash          hashFunc,
+                 size_t             dictSize,
+                 size_t             listSize);
+
+
+
+
+  void JSON_error(JSON_LTYPE*        loc_p,
+                  struct JSON_Type** obj_pp,
+                  FILE*              fd,
+                  JSON_Hash          hashFunc,
+                  size_t             dictSize,
+                  size_t             listSize,
+                  const char*        error);
 %}
-/*============================================================================*/
-/*============================ Bison Definitions =============================*/
+
+
+
+
+/*=============================================================================+
+ |                              Bison Definitions                              |
+ +=============================================================================*/
 %code requires {
 #include "json.h"
+#include "error.h"
   typedef size_t (*JSON_Hash) (const char*);
  }
+
+
+
 
 %union {
   int                bool;
@@ -66,11 +86,17 @@
   struct JSON_List*  list;
 }
 
+
+
+
 %define api.prefix {JSON_}
 %debug
 %locations
 %define api.pure full
 %error-verbose
+
+
+
 
 %parse-param {struct JSON_Type** type}
 %parse-param {FILE* fd}
@@ -79,26 +105,37 @@
 %parse-param {size_t listSize}
 %lex-param   {FILE* fd}
 
+
+
+
 %token <bool> BOOL
 %token <num>  NUM
 %token <str>  STR
 
 %type <type> value
-%type <list> value-sequence
-
 %type <type> entry
+
+%type <dict> object
 %type <dict> entry-sequence
 
 %type <list> array
-%type <dict> object
+%type <list> value-sequence
+
+
+
 
 %destructor {free($$);} STR
 %destructor {JSON_FreeDict($$);} object entry-sequence
 %destructor {JSON_FreeList($$);} array  value-sequence
 %destructor {JSON_FreeType($$);} value  entry
-/*================================= Grammar ==================================*/
-%%
 
+
+
+
+/*=============================================================================+
+ |                                   Grammar                                   |
+ +=============================================================================*/
+%%
 START:
 /*  Empty  */
 |
@@ -133,6 +170,9 @@ START array
 }
 ;
 
+
+
+
 entry:
 STR ':' value
 {
@@ -141,6 +181,9 @@ STR ':' value
   free($1);
 }
 ;
+
+
+
 
 entry-sequence:
 entry
@@ -167,12 +210,18 @@ entry-sequence ',' entry
 }
 ;
 
+
+
+
 object:
 '{' entry-sequence '}'
 {
   $$ = $2;
 }
 ;
+
+
+
 
 array:
 '[' value-sequence ']'
@@ -181,6 +230,9 @@ array:
 }
 ;
 
+
+
+
 value-sequence:
 value
 {
@@ -188,7 +240,7 @@ value
 
   if ($$)
   {
-    if (JSON_PushList($$, $1) != 0)
+    if (JSON_PushList($1, $$) != 0)
     {
       fprintf(stderr, "%s", JSON_GetError());
       YYABORT;
@@ -203,7 +255,7 @@ value
 |
 value-sequence ',' value
 {
-  if (JSON_PushList($1, $3) != 0)
+  if (JSON_PushList($3, $1) != 0)
   {
     fprintf(stderr, "%s", JSON_GetError());
     YYABORT;
@@ -212,6 +264,9 @@ value-sequence ',' value
   $$ = $1;
 }
 ;
+
+
+
 
 value:
 STR
@@ -282,7 +337,11 @@ BOOL
 }
 ;
 %%
-/*  ================================ Epilogue ================================  */
+
+
+/*=============================================================================+
+ |                                  Epilogue                                   |
+ +=============================================================================*/
 void JSON_error(JSON_LTYPE* locP,
                 struct JSON_Type** type,
                 FILE* fd,
