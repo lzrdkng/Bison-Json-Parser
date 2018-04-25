@@ -108,7 +108,7 @@ const JSON_Type* JSON_GetDictValue(const char* key,
     ptr = ptr->next;
   }
 
-  return ptr;;
+  return ptr;
 }
 
 

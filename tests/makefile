@@ -6,8 +6,8 @@ TARGET      := tests
 
 #The Directories, Source, Includes, Objects, Binary and Resources
 SRCDIR      := src
-INCDIR      := /usr/local/include
-LIBDIR      := /usr/local/lib
+INCDIR      := -I../inc -I./inc
+LIBDIR      := ../lib
 BUILDDIR    := obj
 TARGETDIR   := bin
 RESDIR      := res
@@ -16,25 +16,25 @@ DEPEXT      := d
 OBJEXT      := o
 
 #Flags, Libraries and Includes
-CFLAGS      := -fPIC -Wall -Werror -pg -g -O0 -no-pie
-LIB         := -L${LIBDIR} -lJSON -pg
-INC         := -I$(INCDIR)
-INCDEP      := -I$(INCDIR)
+CFLAGS      := -Wall -Werror -ggdb -O0 -pthread
+LIB         := -L${LIBDIR} -lJSON -pthread
+INC         := $(INCDIR)
+INCDEP      := $(INCDIR)
 
 # Valgrind
-VOPTIONS := -v --track-origins=yes --leak-check=full --show-leak-kinds=all
+VOPTIONS := --track-origins=yes --leak-check=full --show-leak-kinds=all --log-file=valgrind.out
 
 #---------------------------------------------------------------------------------
 #DO NOT EDIT BELOW THIS LINE
 #---------------------------------------------------------------------------------
-SOURCES     := $(shell echo $(SRCDIR)/test-*.$(SRCEXT))
+SOURCES     := $(shell echo $(SRCDIR)/*.$(SRCEXT))
 OBJECTS     := $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(SOURCES:.$(SRCEXT)=.$(OBJEXT)))
 
 #Defauilt Make
 all: directories $(TARGET)
 
 grind: all
-	valgrind $(VOPTIONS) ./bin/tests data/test.json > valgrind.out 2>&1
+	valgrind $(VOPTIONS) ./bin/tests
 
 #Remake
 remake: cleaner all
