@@ -68,3 +68,6 @@ callgrind*
 
 parser.c
 parser.h
+
+Makefile
+Makefile.in

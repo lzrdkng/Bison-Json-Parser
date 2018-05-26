@@ -116,17 +116,17 @@
 %type <type> entry
 
 %type <dict> object
-%type <dict> entry-sequence
+%type <dict> entry_sequence
 
 %type <list> array
-%type <list> value-sequence
+%type <list> value_sequence
 
 
 
 
 %destructor {free($$);} STR
-%destructor {JSON_FreeDict($$);} object entry-sequence
-%destructor {JSON_FreeList($$);} array  value-sequence
+%destructor {JSON_FreeDict($$);} object entry_sequence
+%destructor {JSON_FreeList($$);} array  value_sequence
 %destructor {JSON_FreeType($$);} value  entry
 
 
@@ -185,7 +185,7 @@ STR ':' value
 
 
 
-entry-sequence:
+entry_sequence:
 entry
 {
   $$ = JSON_MallocDict(dictSize, hashFunc);
@@ -200,7 +200,7 @@ entry
 
 }
 |
-entry-sequence ',' entry
+entry_sequence ',' entry
 {
   JSON_Type* ow = JSON_SetDictValue($1, $3);
 
@@ -214,7 +214,7 @@ entry-sequence ',' entry
 
 
 object:
-'{' entry-sequence '}'
+'{' entry_sequence '}'
 {
   $$ = $2;
 }
@@ -224,7 +224,7 @@ object:
 
 
 array:
-'[' value-sequence ']'
+'[' value_sequence ']'
 {
   $$ = $2;
 }
@@ -233,7 +233,7 @@ array:
 
 
 
-value-sequence:
+value_sequence:
 value
 {
   $$ = JSON_MallocList(listSize);
@@ -253,7 +253,7 @@ value
   }
 }
 |
-value-sequence ',' value
+value_sequence ',' value
 {
   if (JSON_PushList($3, $1) != 0)
   {
